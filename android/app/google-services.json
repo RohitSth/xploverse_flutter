@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "619638481135",
+    "project_id": "xploverse-flutter",
+    "storage_bucket": "xploverse-flutter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:619638481135:android:8da5f3ea596a1ef436fb1a",
+        "android_client_info": {
+          "package_name": "com.example.flutter_xploverse"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiz2OuYXf1tKc7w-dgkPV1tTZnIg1ojr4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
