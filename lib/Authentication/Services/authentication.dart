@@ -1,12 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 class AuthServices {
   // For storing data in Cloud Firestore
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   // For Authentication
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+// ...
+
+  final firestoreInstance = FirebaseFirestore.instance;
+  final firebaseUser = FirebaseAuth.instance.currentUser;
 
   // For Signup
   Future<String> signUpUser(
@@ -22,12 +26,12 @@ class AuthServices {
 
       // Adding user to cloud firestore
       await _firestore.collection("users").doc(credential.user!.uid).set({
-        'uid': credential.user!.uid,
         'username': username,
+        'uid': credential.user!.uid,
         'email': email,
-        'password': password,
         'usertype': usertype
       });
+      res = "success";
     } catch (e) {
       print(e.toString());
     }

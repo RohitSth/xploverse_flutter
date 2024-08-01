@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_xploverse/Authentication/Screen/home_screen.dart';
 import 'package:flutter_xploverse/Authentication/Screen/login.dart';
+import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/button.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/custom_dropdown.dart';
+import 'package:flutter_xploverse/Authentication/Widgets/snackbar.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/text_field.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -17,8 +20,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   // Use a String to store the selected user type
-  String selectedUserType = 'User';
+  String selectedUserType = 'Explorer';
+
+  bool isLoading = false;
+
   @override
+  void signUpUser() async {
+    String res = await AuthServices().signUpUser(
+        username: usernameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+        usertype: selectedUserType);
+
+    // if signup success, show user created msg and go to next page else show err msg
+    if (res == "success") {
+      setState(() {
+        isLoading = true;
+      });
+      // navigate to next ui
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => HomeScreen()));
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      // show err msg
+      showSnackBar(context, res);
+    }
+  }
+
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -37,7 +67,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               CustomDropdown(
                 initialValue: selectedUserType,
                 items: const [
-                  DropdownMenuItem(value: 'User', child: Text('User')),
+                  DropdownMenuItem(value: 'Explorer', child: Text('Explorer')),
                   DropdownMenuItem(
                       value: 'Organizer', child: Text('Organizer')),
                 ],
@@ -73,8 +103,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               MyButtons(
-                onTap: () {},
-                text: 'Login',
+                onTap: signUpUser,
+                text: 'Sign Up',
               ),
               SizedBox(height: height / 30),
               Column(
