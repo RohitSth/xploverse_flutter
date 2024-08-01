@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_xploverse/Authentication/Screen/login.dart';
+import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/button.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -8,14 +10,19 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("HomePage"),
+          title: const Text("HomePage"),
         ),
         body: Center(
             child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("HomePage Welcome"),
+            const Text("HomePage Welcome"),
             MyButtons(
-              onTap: () {},
+              onTap: () async {
+                await AuthServices().signOut();
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                    builder: (context) => const LoginScreen()));
+              },
               text: 'Logout',
             )
           ],
