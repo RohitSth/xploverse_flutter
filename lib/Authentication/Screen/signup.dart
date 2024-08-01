@@ -24,7 +24,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool isLoading = false;
 
-  @override
+  void despose() {
+    super.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    usernameController.dispose();
+  }
+
   void signUpUser() async {
     String res = await AuthServices().signUpUser(
         username: usernameController.text,

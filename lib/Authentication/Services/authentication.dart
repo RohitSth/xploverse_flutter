@@ -30,7 +30,28 @@ class AuthServices {
         res = "success";
       }
     } catch (e) {
-      print(e.toString());
+      return e.toString();
+    }
+    return res;
+  }
+
+  // For Login
+  Future<String> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    String res = "Some err occurred!!!";
+    try {
+      if (email.isNotEmpty || password.isNotEmpty) {
+        // Login user with email and password
+        await _auth.signInWithEmailAndPassword(
+            email: email, password: password);
+        res = 'success';
+      } else {
+        res = "Please enter all the field";
+      }
+    } catch (e) {
+      return e.toString();
     }
     return res;
   }
