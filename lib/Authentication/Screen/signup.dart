@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_xploverse/Authentication/Screen/login.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/button.dart';
+import 'package:flutter_xploverse/Authentication/Widgets/custom_dropdown.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/text_field.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -15,6 +16,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
+  // Use a String to store the selected user type
+  String selectedUserType = 'User';
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
@@ -27,8 +30,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
             children: [
               SizedBox(
                 width: double.infinity,
-                height: height / 2.7,
+                height: height / 3.5,
                 child: Image.asset("images/LogoXp.jpg"),
+              ),
+              // Dropdown for user type selection
+              CustomDropdown(
+                initialValue: selectedUserType,
+                items: const [
+                  DropdownMenuItem(value: 'User', child: Text('User')),
+                  DropdownMenuItem(
+                      value: 'Organizer', child: Text('Organizer')),
+                ],
+                onChanged: (newValue) {
+                  setState(() {
+                    selectedUserType = newValue!;
+                  });
+                },
               ),
               TextFieldInput(
                   textEditingController: usernameController,
