@@ -7,11 +7,6 @@ class AuthServices {
   // For Authentication
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-// ...
-
-  final firestoreInstance = FirebaseFirestore.instance;
-  final firebaseUser = FirebaseAuth.instance.currentUser;
-
   // For Signup
   Future<String> signUpUser(
       {required String username,
@@ -20,18 +15,20 @@ class AuthServices {
       required String usertype}) async {
     String res = "Some err occurred!!!";
     try {
-      // Register user in firebase
-      UserCredential credential = await _auth.createUserWithEmailAndPassword(
-          email: email, password: password);
+      if (email.isNotEmpty || password.isNotEmpty || username.isNotEmpty) {
+        // Register user in firebase
+        UserCredential credential = await _auth.createUserWithEmailAndPassword(
+            email: email, password: password);
 
-      // Adding user to cloud firestore
-      await _firestore.collection("users").doc(credential.user!.uid).set({
-        'username': username,
-        'uid': credential.user!.uid,
-        'email': email,
-        'usertype': usertype
-      });
-      res = "success";
+        // Adding user to cloud firestore
+        await _firestore.collection("users").doc(credential.user!.uid).set({
+          'username': username,
+          'uid': credential.user!.uid,
+          'email': email,
+          'usertype': usertype
+        });
+        res = "success";
+      }
     } catch (e) {
       print(e.toString());
     }

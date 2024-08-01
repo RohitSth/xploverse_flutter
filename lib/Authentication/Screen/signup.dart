@@ -88,6 +88,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               TextFieldInput(
                   textEditingController: passwordController,
                   hintText: "Enter your password",
+                  isPass: true,
                   icon: Icons.lock),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 35),
