@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_xploverse/Authentication/Screen/signup.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/button.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/text_field.dart';
 
@@ -10,7 +11,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // for controller
+  // controller
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -54,8 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 onTap: () {},
                 text: 'Login',
               ),
-              SizedBox(height: height / 15),
-              Row(
+              SizedBox(height: height / 30),
+              Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
@@ -63,7 +64,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(fontSize: 14),
                   ),
                   GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SignUpScreen()));
+                      },
                       child: const Text(
                         "Sign up here",
                         style: TextStyle(
