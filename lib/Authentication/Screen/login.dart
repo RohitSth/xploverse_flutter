@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_xploverse/Authentication/PasswordForget/password_forget.dart';
 import 'package:flutter_xploverse/Authentication/Screen/home_screen.dart';
 import 'package:flutter_xploverse/Authentication/Screen/signup.dart';
 import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
@@ -71,19 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   hintText: "Enter your password",
                   isPass: true,
                   icon: Icons.lock),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 35),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "Forget Password?",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Colors.blue),
-                  ),
-                ),
-              ),
+              const PasswordForget(),
               MyButtons(
                 onTap: loginUser,
                 text: 'Login',
