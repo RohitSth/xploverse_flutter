@@ -70,7 +70,7 @@ class _PasswordForgetState extends State<PasswordForget> {
                     controller: emailController,
                     decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: "Enter your recovery email",
+                        labelText: "Enter your email",
                         hintText: "Eg: xploverse@example.com"),
                   ),
                   const SizedBox(
