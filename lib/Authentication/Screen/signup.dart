@@ -15,16 +15,14 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // controller
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
-  // Use a String to store the selected user type
   String selectedUserType = 'Explorer';
-
   bool isLoading = false;
 
-  void despose() {
+  @override
+  void dispose() {
     super.dispose();
     emailController.dispose();
     passwordController.dispose();
@@ -33,34 +31,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void signUpUser() async {
     String res = await AuthServices().signUpUser(
-        username: usernameController.text,
-        email: emailController.text,
-        password: passwordController.text,
-        usertype: selectedUserType);
+      username: usernameController.text,
+      email: emailController.text,
+      password: passwordController.text,
+      usertype: selectedUserType,
+    );
 
-    // if signup success, show user created msg and go to next page else show err msg
     if (res == "success") {
       setState(() {
         isLoading = true;
       });
-      // navigate to next ui
       Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomeScreen()));
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
     } else {
       setState(() {
         isLoading = false;
       });
-      // show err msg
       showSnackBar(context, res);
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-            child: SizedBox(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -69,7 +67,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 height: height / 3.5,
                 child: Image.asset("images/LogoXp.jpg"),
               ),
-              // Dropdown for user type selection
               CustomDropdown(
                 initialValue: selectedUserType,
                 items: const [
@@ -84,18 +81,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 },
               ),
               TextFieldInput(
-                  textEditingController: usernameController,
-                  hintText: "Enter your username",
-                  icon: Icons.person),
+                textEditingController: usernameController,
+                hintText: "Enter your username",
+                icon: Icons.person,
+              ),
               TextFieldInput(
-                  textEditingController: emailController,
-                  hintText: "Enter your email",
-                  icon: Icons.email),
+                textEditingController: emailController,
+                hintText: "Enter your email",
+                icon: Icons.email,
+              ),
               TextFieldInput(
-                  textEditingController: passwordController,
-                  hintText: "Enter your password",
-                  isPass: true,
-                  icon: Icons.lock),
+                textEditingController: passwordController,
+                hintText: "Enter your password",
+                isPass: true,
+                icon: Icons.lock,
+              ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 35),
                 child: Align(
@@ -103,9 +103,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Text(
                     "Forget Password?",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Colors.blue),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.blue,
+                    ),
                   ),
                 ),
               ),
@@ -122,21 +123,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     style: TextStyle(fontSize: 14),
                   ),
                   GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const LoginScreen()));
-                      },
-                      child: const Text(
-                        "Login here",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14),
-                      )),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const LoginScreen()),
+                      );
+                    },
+                    child: const Text(
+                      "Login here",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                  ),
                 ],
               )
             ],
           ),
-        )));
+        ),
+      ),
+    );
   }
 }

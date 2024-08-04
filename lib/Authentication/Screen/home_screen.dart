@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_xploverse/Authentication/Screen/login.dart';
 import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
@@ -24,7 +26,11 @@ class HomeScreen extends StatelessWidget {
                     builder: (context) => const LoginScreen()));
               },
               text: 'Logout',
-            )
+            ),
+            // For users who signed in with google account
+            Image.network("${FirebaseAuth.instance.currentUser!.photoURL}"),
+            Text("${FirebaseAuth.instance.currentUser!.email}"),
+            Text("${FirebaseAuth.instance.currentUser!.displayName}"),
           ],
         )));
   }
