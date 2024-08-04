@@ -1,6 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -30,12 +30,21 @@ class FirebaseServices {
 
           if (!userDoc.exists) {
             // If it's a new user, save their info including the user type
-            await _firestore.collection('users').doc(user.uid).set({
+            Map<String, dynamic> userData = {
               'uid': user.uid,
               'email': user.email,
               'username': user.displayName,
               'usertype': userType,
-            });
+            };
+
+            if (userType == 'Organizer') {
+              // For organizers, we need to collect additional information
+              // You should implement a UI to collect this information
+              // For now, we'll just return a message indicating that more info is needed
+              return "additional_info_needed";
+            }
+
+            await _firestore.collection('users').doc(user.uid).set(userData);
           } else {
             // If user already exists, update the usertype
             await _firestore.collection('users').doc(user.uid).update({
@@ -47,6 +56,19 @@ class FirebaseServices {
         }
       }
       return "Google Sign In failed";
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  Future<String> completeOrganizerSignup(
+      String uid, String organization, String phone) async {
+    try {
+      await _firestore.collection('users').doc(uid).update({
+        'organization': organization,
+        'phone': phone,
+      });
+      return "success";
     } catch (e) {
       return e.toString();
     }

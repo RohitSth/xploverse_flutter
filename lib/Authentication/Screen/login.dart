@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_xploverse/Authentication/LoginWithGoogle/google_auth.dart';
 import 'package:flutter_xploverse/Authentication/PasswordForget/password_forget.dart';
@@ -18,9 +20,29 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController organizerCodeController = TextEditingController();
   bool isLoading = false;
 
   final FirebaseServices _firebaseServices = FirebaseServices();
+
+  void _loginAsOrganizer(String organizerCode) async {
+    // Verify organizer code
+    QuerySnapshot query = await FirebaseFirestore.instance
+        .collection('organizer_requests')
+        .where('organizerCode', isEqualTo: organizerCode)
+        .where('status', isEqualTo: 'approved')
+        .get();
+
+    if (query.docs.isNotEmpty) {
+      // Organizer code is valid and approved
+      // Proceed with login (you may want to create a user account if it doesn't exist)
+      // For now, we'll just show a success message
+      showSnackBar(context, "Logged in as Organizer successfully");
+      // Navigate to organizer dashboard or home screen
+    } else {
+      showSnackBar(context, "Invalid or unapproved Organizer code");
+    }
+  }
 
   @override
   void dispose() {
@@ -47,38 +69,12 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showGoogleSignInDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Choose your role"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: () => _signInWithGoogle("Explorer"),
-                child: Text("Sign in as Explorer"),
-              ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () => _signInWithGoogle("Organizer"),
-                child: Text("Sign in as Organizer"),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _signInWithGoogle(String userType) async {
-    Navigator.of(context).pop(); // Close the dialog
     setState(() {
       isLoading = true;
     });
 
-    String result = await _firebaseServices.signInWithGoogle(userType);
+    String result = await FirebaseServices().signInWithGoogle(userType);
 
     setState(() {
       isLoading = false;
@@ -91,9 +87,65 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context) => const HomeScreen(),
         ),
       );
+    } else if (result == "additional_info_needed") {
+      // Show a dialog or navigate to a new screen to collect additional organizer information
+      _showOrganizerInfoDialog();
     } else {
       showSnackBar(context, result);
     }
+  }
+
+  void _showOrganizerInfoDialog() {
+    TextEditingController organizationController = TextEditingController();
+    TextEditingController phoneController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Additional Information Needed"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFieldInput(
+                textEditingController: organizationController,
+                hintText: "Enter organization name",
+                icon: Icons.business,
+              ),
+              TextFieldInput(
+                textEditingController: phoneController,
+                hintText: "Enter phone number",
+                icon: Icons.phone,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text("Submit"),
+              onPressed: () async {
+                String result =
+                    await FirebaseServices().completeOrganizerSignup(
+                  FirebaseAuth.instance.currentUser!.uid,
+                  organizationController.text,
+                  phoneController.text,
+                );
+                Navigator.of(context).pop();
+                if (result == "success") {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomeScreen(),
+                    ),
+                  );
+                } else {
+                  showSnackBar(context, result);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -147,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     elevation: 5,
                   ),
-                  onPressed: _showGoogleSignInDialog,
+                  onPressed: () => _signInWithGoogle("Explorer"),
                   child: Row(
                     children: [
                       Padding(
