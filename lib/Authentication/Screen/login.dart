@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_xploverse/Authentication/LoginWithGoogle/google_auth.dart';
 import 'package:flutter_xploverse/Authentication/PasswordForget/password_forget.dart';
-import 'package:flutter_xploverse/Authentication/Screen/home_screen.dart';
+import 'package:flutter_xploverse/Home/Screen/home_screen.dart';
 import 'package:flutter_xploverse/Authentication/Screen/signup.dart';
 import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/button.dart';
@@ -24,25 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
 
   final FirebaseServices _firebaseServices = FirebaseServices();
-
-  void _loginAsOrganizer(String organizerCode) async {
-    // Verify organizer code
-    QuerySnapshot query = await FirebaseFirestore.instance
-        .collection('organizer_requests')
-        .where('organizerCode', isEqualTo: organizerCode)
-        .where('status', isEqualTo: 'approved')
-        .get();
-
-    if (query.docs.isNotEmpty) {
-      // Organizer code is valid and approved
-      // Proceed with login (you may want to create a user account if it doesn't exist)
-      // For now, we'll just show a success message
-      showSnackBar(context, "Logged in as Organizer successfully");
-      // Navigate to organizer dashboard or home screen
-    } else {
-      showSnackBar(context, "Invalid or unapproved Organizer code");
-    }
-  }
 
   @override
   void dispose() {
@@ -152,7 +134,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
-      backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
+      backgroundColor: Colors.black,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -161,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 width: double.infinity,
                 height: height / 2.7,
-                child: Image.asset("images/LogoXp.jpg"),
+                child: SvgPicture.asset("images/XploverseLogo.svg"),
               ),
               TextFieldInput(
                 textEditingController: emailController,
@@ -179,19 +162,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 onTap: loginUser,
                 text: 'Login',
               ),
-              Row(
-                children: [
-                  Expanded(child: Container(height: 1, color: Colors.black26)),
-                  const Text(" or "),
-                  Expanded(child: Container(height: 1, color: Colors.black26)),
-                ],
+              const Center(
+                child: Text(
+                  " OR ",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 60, vertical: 10),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 159, 184, 196),
+                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                     padding:
                         const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
                     shape: RoundedRectangleBorder(
@@ -201,6 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: () => _signInWithGoogle("Explorer"),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(right: 10),
@@ -214,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
-                          color: Colors.white,
+                          color: Color.fromARGB(255, 50, 139, 255),
                         ),
                       ),
                     ],
@@ -227,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Text(
                     "Don't have an account?",
-                    style: TextStyle(fontSize: 14),
+                    style: TextStyle(fontSize: 14, color: Colors.white),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -239,12 +222,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: const Text(
                       "Sign up here",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Colors.white),
                     ),
                   ),
                 ],
-              )
+              ),
+              SizedBox(
+                  height: MediaQuery.of(context)
+                      .viewInsets
+                      .bottom) // Extra padding to ensure the content is visible when the keyboard is shown
             ],
           ),
         ),

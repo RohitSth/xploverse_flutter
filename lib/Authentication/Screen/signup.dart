@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_xploverse/Authentication/Screen/home_screen.dart';
+import 'package:flutter_xploverse/Home/Screen/home_screen.dart';
 import 'package:flutter_xploverse/Authentication/Screen/login.dart';
 import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/button.dart';
@@ -65,6 +65,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -149,6 +150,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
+                SizedBox(
+                    height: MediaQuery.of(context)
+                        .viewInsets
+                        .bottom) // Extra padding to ensure the content is visible when the keyboard is shown
               ],
             ),
           ),
