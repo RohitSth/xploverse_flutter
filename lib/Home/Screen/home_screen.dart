@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_xploverse/Authentication/Screen/login.dart';
 import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
 import 'package:flutter_xploverse/Events/Screen/events_screen.dart';
@@ -26,10 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   final List<Widget> _children = [
-    MapPage(),
-    EventsScreen(),
-    TicketsScreen(),
-    ProfileScreen(),
+    const MapPage(),
+    const EventsScreen(),
+    const TicketsScreen(),
+    const ProfileScreen(),
   ];
 
   void onTabTapped(int index) {
@@ -56,7 +57,18 @@ class _HomeScreenState extends State<HomeScreen> {
         extendBody:
             true, // This allows the body to extend behind the bottom nav bar
         appBar: AppBar(
-          title: Text(_getAppBarTitle()),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SvgPicture.asset(
+                "images/XploverseLogo.svg",
+                height: 55.0,
+              ),
+              const SizedBox(
+                  width: 5.0), // spacing between the logo and the title
+              Text(_getAppBarTitle()),
+            ],
+          ),
           actions: [
             IconButton(
               onPressed: _toggleTheme,
@@ -72,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: _children,
         ),
         bottomNavigationBar: Container(
-          margin: EdgeInsets.all(20),
+          margin: const EdgeInsets.all(20),
           height: size.width * .155,
           decoration: BoxDecoration(
             color: _isDarkMode ? Colors.grey[800] : Colors.white,
@@ -80,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
               BoxShadow(
                 color: Colors.black.withOpacity(.15),
                 blurRadius: 30,
-                offset: Offset(0, 10),
+                offset: const Offset(0, 10),
               ),
             ],
             borderRadius: BorderRadius.circular(50),
@@ -97,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   AnimatedContainer(
-                    duration: Duration(milliseconds: 1500),
+                    duration: const Duration(milliseconds: 1500),
                     curve: Curves.fastLinearToSlowEaseIn,
                     margin: EdgeInsets.only(
                       bottom: index == _currentIndex ? 0 : size.width * .029,
@@ -106,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     width: size.width * .128,
                     height: index == _currentIndex ? size.width * .014 : 0,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.blueAccent,
                       borderRadius: BorderRadius.vertical(
                         bottom: Radius.circular(10),
@@ -133,15 +145,15 @@ class _HomeScreenState extends State<HomeScreen> {
   String _getAppBarTitle() {
     switch (_currentIndex) {
       case 0:
-        return 'Map';
+        return 'HOME';
       case 1:
-        return 'Events';
+        return 'EVENTS';
       case 2:
-        return 'Tickets';
+        return 'TICKETS';
       case 3:
-        return 'Profile';
+        return 'PROFILE';
       default:
-        return 'Xploverse';
+        return 'XPLOVERSE';
     }
   }
 

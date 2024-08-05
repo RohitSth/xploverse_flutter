@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -36,6 +37,53 @@ class _MapPageState extends State<MapPage> {
     super.initState();
     currentLayer = 'Default';
   }
+
+  // ------------------LOCATION------------------------------
+  String locationMessage = "Current location";
+  late String lat;
+  late String long;
+
+  // Get Current Location
+  Future<Position> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error("Location services are disabled.");
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error("Location permissions are denied");
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          "Location permissions are permanently denied, we cannot request permission");
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
+
+  // Listen to location updates
+  void _liveLocation() {
+    LocationSettings locationSettings = const LocationSettings(
+      accuracy: LocationAccuracy.bestForNavigation,
+      distanceFilter: 100,
+    );
+
+    Geolocator.getPositionStream(locationSettings: locationSettings)
+        .listen((Position position) {
+      lat = position.latitude.toString();
+      long = position.longitude.toString();
+
+      setState(() {
+        locationMessage = 'Latitude: $lat, Longitude: $long';
+      });
+    });
+  }
+
+  // ------------------LOCATION------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +129,7 @@ class _MapPageState extends State<MapPage> {
               ),
               Positioned(
                 // Add a PopupMenuButton to change the layer
-                bottom: 90,
+                bottom: 100,
                 right: 10,
                 child: Container(
                   decoration: BoxDecoration(
@@ -126,21 +174,38 @@ class _MapPageState extends State<MapPage> {
                   ),
                 ),
               ),
+              Positioned(top: 10, right: 10, child: Text(locationMessage)),
               Positioned(
-                bottom: 10,
-                right: 10,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  color: isDarkMode ? Colors.black54 : Colors.white54,
-                  child: Text(
-                    getAttribution(),
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.white70 : Colors.black54,
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
-              ),
+                  bottom: 160,
+                  right: 10,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _getCurrentLocation().then((value) {
+                        lat = '${value.latitude}';
+                        long = '${value.longitude}';
+                        setState(() {
+                          locationMessage = 'Lat: $lat, Long: $long';
+                        });
+                        _liveLocation();
+                      });
+                    },
+                    child: Icon(Icons.my_location),
+                  )),
+              // Positioned(
+              //   bottom: 10,
+              //   right: 10,
+              //   child: Container(
+              //     padding: const EdgeInsets.all(4),
+              //     color: isDarkMode ? Colors.black54 : Colors.white54,
+              //     child: Text(
+              //       getAttribution(),
+              //       style: TextStyle(
+              //         color: isDarkMode ? Colors.white70 : Colors.black54,
+              //         fontSize: 10,
+              //       ),
+              //     ),
+              //   ),
+              // ),
             ],
           );
         },
