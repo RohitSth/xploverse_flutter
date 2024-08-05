@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_xploverse/Authentication/Screen/login.dart';
 import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
+import 'package:flutter_xploverse/Home/Screen/fade_page_route.dart';
 import 'package:flutter_xploverse/Map/Screen/map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -40,10 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 0,
               right: 0,
               child: AppBar(
-                title: const Text(
-                  "XPLOVERSE",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                // backgroundColor: Colors.transparent,
                 actions: [
                   IconButton(
                     onPressed: _toggleTheme,
@@ -63,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+// DropdownButton
 class UserProfileDropdown extends StatelessWidget {
   const UserProfileDropdown({super.key});
 
@@ -78,11 +77,13 @@ class UserProfileDropdown extends StatelessWidget {
         if (value == 'Logout') {
           await AuthServices().signOut();
           Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const LoginScreen()));
+            FadePageRoute(page: const LoginScreen()),
+          );
         } else if (value == 'Profile') {
           // Navigate to the profile page (assuming you have one)
           Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const ProfileScreen()));
+            FadePageRoute(page: const ProfileScreen()),
+          );
         }
       },
       itemBuilder: (BuildContext context) {

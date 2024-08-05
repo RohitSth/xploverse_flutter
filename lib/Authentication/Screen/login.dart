@@ -43,7 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
         isLoading = true;
       });
       Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()));
+        FadePageRoute(page: const HomeScreen()),
+      );
     } else {
       setState(() {
         isLoading = false;
@@ -66,69 +67,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (result == "success") {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ),
+        FadePageRoute(page: const HomeScreen()),
       );
-    } else if (result == "additional_info_needed") {
-      // Show a dialog or navigate to a new screen to collect additional organizer information
-      _showOrganizerInfoDialog();
     } else {
       showSnackBar(context, result);
     }
-  }
-
-  void _showOrganizerInfoDialog() {
-    TextEditingController organizationController = TextEditingController();
-    TextEditingController phoneController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Additional Information Needed"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFieldInput(
-                textEditingController: organizationController,
-                hintText: "Enter organization name",
-                icon: Icons.business,
-              ),
-              TextFieldInput(
-                textEditingController: phoneController,
-                hintText: "Enter phone number",
-                icon: Icons.phone,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Submit"),
-              onPressed: () async {
-                String result =
-                    await FirebaseServices().completeOrganizerSignup(
-                  FirebaseAuth.instance.currentUser!.uid,
-                  organizationController.text,
-                  phoneController.text,
-                );
-                Navigator.of(context).pop();
-                if (result == "success") {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const HomeScreen(),
-                    ),
-                  );
-                } else {
-                  showSnackBar(context, result);
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -225,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
-                          color: Color.fromARGB(255, 94, 138, 235)),
+                          color: Colors.blue),
                     ),
                   ),
                 ],

@@ -92,7 +92,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   });
                 },
               ),
-              const SizedBox(height: 20),
               TextFieldInput(
                 textEditingController: emailController,
                 hintText: "Enter your email",
