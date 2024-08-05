@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -11,7 +12,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Text("Profile"),
+      appBar: AppBar(
+        title: const Text('Profile'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.network(FirebaseAuth.instance.currentUser!.photoURL ?? ''),
+            Text(FirebaseAuth.instance.currentUser!.email ?? ''),
+            Text(FirebaseAuth.instance.currentUser!.displayName ?? ''),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_xploverse/Home/Screen/main_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_xploverse/Authentication/Screen/login.dart';
 import 'package:flutter_xploverse/Home/Screen/home_screen.dart';
@@ -52,6 +53,18 @@ class _SplashScreenState extends State<SplashScreen>
               );
             },
           ),
+          // PageRouteBuilder(
+          //   pageBuilder: (context, animation, secondaryAnimation) =>
+          //       MainScreen(),
+          //   transitionDuration: const Duration(milliseconds: 800),
+          //   transitionsBuilder:
+          //       (context, animation, secondaryAnimation, child) {
+          //     return FadeTransition(
+          //       opacity: animation,
+          //       child: child,
+          //     );
+          //   },
+          // ),
         );
       });
     });

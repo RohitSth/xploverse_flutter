@@ -81,8 +81,8 @@ class _MapPageState extends State<MapPage> {
               ),
               Positioned(
                 // Add a PopupMenuButton to change the layer
-                bottom: 10,
-                left: 10,
+                bottom: 90,
+                right: 10,
                 child: Container(
                   decoration: BoxDecoration(
                     color: isDarkMode ? Colors.white24 : Colors.black26,
