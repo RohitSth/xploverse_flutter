@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_xploverse/Authentication/LoginWithGoogle/google_auth.dart';
 import 'package:flutter_xploverse/Authentication/PasswordForget/password_forget.dart';
+import 'package:flutter_xploverse/Home/Screen/fade_page_route.dart';
 import 'package:flutter_xploverse/Home/Screen/home_screen.dart';
 import 'package:flutter_xploverse/Authentication/Screen/signup.dart';
 import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
@@ -85,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Additional Information Needed"),
+          title: const Text("Additional Information Needed"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -103,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           actions: [
             TextButton(
-              child: Text("Submit"),
+              child: const Text("Submit"),
               onPressed: () async {
                 String result =
                     await FirebaseServices().completeOrganizerSignup(
@@ -143,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               SizedBox(
                 width: double.infinity,
-                height: height / 2.7,
+                height: height / 3.5,
                 child: SvgPicture.asset("images/XploverseLogo.svg"),
               ),
               TextFieldInput(
@@ -216,8 +217,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => const SignUpScreen()),
+                        FadePageRoute(page: const SignUpScreen()),
                       );
                     },
                     child: const Text(
@@ -225,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
-                          color: Colors.white),
+                          color: Color.fromARGB(255, 94, 138, 235)),
                     ),
                   ),
                 ],
