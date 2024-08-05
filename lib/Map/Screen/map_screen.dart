@@ -189,7 +189,7 @@ class _MapPageState extends State<MapPage> {
                         _liveLocation();
                       });
                     },
-                    child: Icon(Icons.my_location),
+                    child: const Icon(Icons.my_location),
                   )),
               // Positioned(
               //   bottom: 10,
