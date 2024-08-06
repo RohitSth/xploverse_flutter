@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_xploverse/Home/Screen/fade_page_route.dart';
-import 'package:flutter_xploverse/Home/Screen/home_screen.dart';
-import 'package:flutter_xploverse/Authentication/Screen/login.dart';
-import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
-import 'package:flutter_xploverse/Authentication/Widgets/button.dart';
-import 'package:flutter_xploverse/Authentication/Widgets/custom_dropdown.dart';
-import 'package:flutter_xploverse/Authentication/Widgets/snackbar.dart';
-import 'package:flutter_xploverse/Authentication/Widgets/text_field.dart';
+import 'package:flutter_xploverse/screens/home/fade_page_route.dart';
+import 'package:flutter_xploverse/screens/home/home_screen.dart';
+import 'package:flutter_xploverse/screens/auth/login.dart';
+import 'package:flutter_xploverse/models/auth/authentication.dart';
+import 'package:flutter_xploverse/shared/button.dart';
+import 'package:flutter_xploverse/shared/custom_dropdown.dart';
+import 'package:flutter_xploverse/shared/snackbar.dart';
+import 'package:flutter_xploverse/shared/text_field.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);

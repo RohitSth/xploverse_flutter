@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_xploverse/Authentication/LoginWithGoogle/google_auth.dart';
-import 'package:flutter_xploverse/Authentication/PasswordForget/password_forget.dart';
-import 'package:flutter_xploverse/Home/Screen/fade_page_route.dart';
-import 'package:flutter_xploverse/Home/Screen/home_screen.dart';
-import 'package:flutter_xploverse/Authentication/Screen/signup.dart';
-import 'package:flutter_xploverse/Authentication/Services/authentication.dart';
-import 'package:flutter_xploverse/Authentication/Widgets/button.dart';
-import 'package:flutter_xploverse/Authentication/Widgets/snackbar.dart';
-import 'package:flutter_xploverse/Authentication/Widgets/text_field.dart';
+import 'package:flutter_xploverse/models/auth/google_auth.dart';
+import 'package:flutter_xploverse/screens/auth/password_forget.dart';
+import 'package:flutter_xploverse/screens/home/fade_page_route.dart';
+import 'package:flutter_xploverse/screens/home/home_screen.dart';
+import 'package:flutter_xploverse/screens/auth/signup.dart';
+import 'package:flutter_xploverse/models/auth/authentication.dart';
+import 'package:flutter_xploverse/shared/button.dart';
+import 'package:flutter_xploverse/shared/snackbar.dart';
+import 'package:flutter_xploverse/shared/text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);

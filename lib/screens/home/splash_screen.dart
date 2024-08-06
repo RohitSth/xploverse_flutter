@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_xploverse/Authentication/Screen/login.dart';
-import 'package:flutter_xploverse/Home/Screen/home_screen.dart';
+import 'package:flutter_xploverse/screens/auth/login.dart';
+import 'package:flutter_xploverse/screens/home/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

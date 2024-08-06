@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_xploverse/Authentication/Widgets/snackbar.dart';
+import 'package:flutter_xploverse/shared/snackbar.dart';
 
 class PasswordForget extends StatefulWidget {
   const PasswordForget({super.key});

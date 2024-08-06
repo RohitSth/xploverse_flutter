@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_xploverse/Home/Screen/splash_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_xploverse/screens/home/splash_screen.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +10,7 @@ Future main() async {
   } catch (e) {
     print("Firebase initialization failed: $e");
   }
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -23,3 +24,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+final counterStateProvider = StateProvider<int>((ref) {
+  return 0;
+});
