@@ -16,6 +16,8 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
   Widget build(BuildContext context) {
     final bookedEvents = ref.watch(bookedNotifierProvider);
 
+    final total = ref.watch(totalBookedAmountProvider);
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(25),
@@ -46,6 +48,16 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
                 ),
               ),
             ),
+            Center(
+              child: Text(
+                "Total Amount - Nrs.${total.toStringAsFixed(2)}",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 70),
           ],
         ),
       ),

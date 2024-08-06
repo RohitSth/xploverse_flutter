@@ -26,3 +26,16 @@ class BookedNotifier extends _$BookedNotifier {
         state.where((existingEvent) => existingEvent.id != event.id).toSet();
   }
 }
+
+@riverpod
+double totalBookedAmount(ref) {
+  final bookedEvents = ref.watch(bookedNotifierProvider);
+
+  double total = 0.0;
+
+  for (Event event in bookedEvents) {
+    total += event.ticketPrice;
+  }
+
+  return total;
+}

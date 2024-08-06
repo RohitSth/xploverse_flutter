@@ -6,6 +6,21 @@ part of 'booked_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$totalBookedAmountHash() => r'952fe80a14e50345eff649793c6920090e181bd5';
+
+/// See also [totalBookedAmount].
+@ProviderFor(totalBookedAmount)
+final totalBookedAmountProvider = AutoDisposeProvider<double>.internal(
+  totalBookedAmount,
+  name: r'totalBookedAmountProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$totalBookedAmountHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef TotalBookedAmountRef = AutoDisposeProviderRef<double>;
 String _$bookedNotifierHash() => r'16e897ed89e494e84934969a24cadcaf747188a9';
 
 /// See also [BookedNotifier].
