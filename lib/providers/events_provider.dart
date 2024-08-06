@@ -1,5 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_xploverse/models/auth/event.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'events_provider.g.dart';
 
 List<Event> allEvents = [
   // Music Festivals
@@ -170,12 +172,13 @@ List<Event> allEvents = [
   ),
 ];
 
-// Read Only
-final eventsProvider = Provider((ref) {
+// Generated providers
+@riverpod
+List<Event> events(ref) {
   return allEvents;
-});
+}
 
-// Read Only where the price is less than --
-final reducedEventProvider = Provider((ref) {
+@riverpod
+List<Event> reducedEvents(ref) {
   return allEvents.where((e) => e.ticketPrice < 50).toList();
-});
+}

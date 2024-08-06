@@ -1,17 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_xploverse/providers/events_provider.dart';
 
-class TicketsScreen extends StatefulWidget {
+class TicketsScreen extends ConsumerStatefulWidget {
   const TicketsScreen({super.key});
 
   @override
-  State<TicketsScreen> createState() => _TicketsScreenState();
+  ConsumerState<TicketsScreen> createState() => _TicketsScreenState();
 }
 
-class _TicketsScreenState extends State<TicketsScreen> {
+class _TicketsScreenState extends ConsumerState<TicketsScreen> {
+  bool showCoupon = true;
+
   @override
   Widget build(BuildContext context) {
+    final bookedEvents = ref.watch(reducedEventsProvider);
+
     return Scaffold(
-      body: Text("Tickets"),
+      body: Container(
+          padding: const EdgeInsets.all(25),
+          child: Column(
+            children: bookedEvents.map((event) {
+              return Container(
+                padding: const EdgeInsets.only(top: 7, bottom: 7),
+                child: Row(
+                  children: [
+                    Image.asset(event.images[0], width: 60, height: 60),
+                    const SizedBox(width: 10),
+                    Text('${event.title}...'),
+                    const Expanded(child: SizedBox()),
+                    Text('Nrs.${event.ticketPrice}')
+                  ],
+                ),
+              );
+            }).toList(),
+          )),
     );
   }
 }
