@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_xploverse/providers/events_provider.dart';
+import 'package:flutter_xploverse/providers/booked_provider.dart';
 
 class TicketsScreen extends ConsumerStatefulWidget {
   const TicketsScreen({super.key});
@@ -14,7 +14,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bookedEvents = ref.watch(reducedEventsProvider);
+    final bookedEvents = ref.watch(bookedNotifierProvider);
 
     return Scaffold(
       body: Container(
@@ -27,7 +27,13 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
                   children: [
                     Image.asset(event.images[0], width: 60, height: 60),
                     const SizedBox(width: 10),
-                    Text('${event.title}...'),
+                    Text(
+                      event.title.length > 12
+                          ? '${event.title.substring(0, 12)}...'
+                          : event.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const Expanded(child: SizedBox()),
                     Text('Nrs.${event.ticketPrice}')
                   ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_xploverse/providers/booked_provider.dart';
 import 'package:flutter_xploverse/providers/events_provider.dart';
 import 'package:intl/intl.dart';
 
@@ -9,6 +10,8 @@ class EventsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final allEvents = ref.watch(eventsProvider);
+    final bookedEvents = ref.watch(bookedNotifierProvider);
+
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDarkMode ? Colors.white : Colors.black;
 
@@ -22,7 +25,7 @@ class EventsScreen extends ConsumerWidget {
               itemCount: allEvents.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.75,
+                childAspectRatio: 0.70,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
@@ -55,17 +58,17 @@ class EventsScreen extends ConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 1),
                             Text(
                               event.description,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
                                   ?.copyWith(color: textColor.withOpacity(0.8)),
-                              maxLines: 2,
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 1),
                             Text(
                               _formatDateTime(event.startDate),
                               style: Theme.of(context)
@@ -82,6 +85,34 @@ class EventsScreen extends ConsumerWidget {
                                     fontWeight: FontWeight.bold,
                                     color: textColor,
                                   ),
+                            ),
+                            // Single button with conditional text based on event ID
+                            TextButton(
+                              onPressed: () {
+                                if (bookedEvents.any((bookedEvent) =>
+                                    bookedEvent.id == event.id)) {
+                                  ref
+                                      .read(bookedNotifierProvider.notifier)
+                                      .removeEvent(event);
+                                } else {
+                                  ref
+                                      .read(bookedNotifierProvider.notifier)
+                                      .addEvent(event);
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: bookedEvents.any(
+                                        (bookedEvent) =>
+                                            bookedEvent.id == event.id)
+                                    ? Colors.red
+                                    : Colors.blue,
+                              ),
+                              child: Text(
+                                bookedEvents.any((bookedEvent) =>
+                                        bookedEvent.id == event.id)
+                                    ? 'Remove'
+                                    : 'Book',
+                              ),
                             ),
                           ],
                         ),
