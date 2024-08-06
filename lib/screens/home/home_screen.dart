@@ -2,7 +2,9 @@ import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_xploverse/providers/booked_provider.dart';
 import 'package:flutter_xploverse/screens/auth/login.dart';
 import 'package:flutter_xploverse/models/auth/authentication.dart';
 import 'package:flutter_xploverse/screens/events/events_screen.dart';
@@ -11,14 +13,14 @@ import 'package:flutter_xploverse/screens/home/fade_page_route.dart';
 import 'package:flutter_xploverse/screens/home/profile_screen.dart';
 import 'package:flutter_xploverse/screens/map/map_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _isDarkMode = true; // Default to dark mode
   int _currentIndex = 0;
 
@@ -45,6 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     final ThemeData theme = _isDarkMode ? ThemeData.dark() : ThemeData.light();
+
+    final numberOfEventsInBooked = ref.watch(bookedNotifierProvider).length;
 
     return Theme(
       data: theme.copyWith(
@@ -148,12 +152,34 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        Icon(
-                          listOfIcons[index],
-                          size: iconSize, // Use calculated icon size
-                          color: index == _currentIndex
-                              ? (_isDarkMode ? Colors.white : Colors.black)
-                              : const Color.fromARGB(255, 10, 123, 158),
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              listOfIcons[index],
+                              size: iconSize, // Use calculated icon size
+                              color: index == _currentIndex
+                                  ? (_isDarkMode ? Colors.white : Colors.black)
+                                  : const Color.fromARGB(255, 10, 123, 158),
+                            ),
+                            if (index == 2 && numberOfEventsInBooked > 0)
+                              Positioned(
+                                top: 3,
+                                left: 5,
+                                child: Container(
+                                  height: 19,
+                                  width: 19,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    numberOfEventsInBooked.toString(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         SizedBox(height: size.width * .03),
                       ],
