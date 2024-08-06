@@ -57,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
         extendBody:
             true, // This allows the body to extend behind the bottom nav bar
         appBar: AppBar(
+          backgroundColor: _isDarkMode ? Colors.black54 : Colors.white54,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [

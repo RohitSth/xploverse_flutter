@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:math' as math;
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -97,14 +100,26 @@ class _MapPageState extends State<MapPage> {
   // ------------------LOCATION END-----------------------
 
   // ------------------COMPASS------------------------------
+  StreamSubscription<CompassEvent>? _compassSubscription;
+
   void _startCompass() {
-    FlutterCompass.events?.listen((CompassEvent event) {
-      setState(() {
-        _direction = event.heading ?? 0;
-      });
-      mapController.rotate(-_direction * (pi / 180));
+    _compassSubscription = FlutterCompass.events?.listen((CompassEvent event) {
+      if (mounted) {
+        setState(() {
+          _direction = event.heading ?? 0;
+        });
+        mapController.rotate(-_direction * (math.pi / 180));
+      }
     });
   }
+
+  @override
+  void dispose() {
+    debugPrint('Cancelling compass subscription...');
+    _compassSubscription?.cancel();
+    super.dispose();
+  }
+
   // ------------------COMPASS END------------------------------
 
   @override

@@ -8,7 +8,6 @@ import 'package:flutter_xploverse/Authentication/Widgets/button.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/custom_dropdown.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/snackbar.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/text_field.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
