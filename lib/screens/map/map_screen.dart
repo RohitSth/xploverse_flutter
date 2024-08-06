@@ -3,18 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_xploverse/providers/events_provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:math' as math;
 
-class MapPage extends StatefulWidget {
+class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});
 
   @override
-  State<MapPage> createState() => _MapPageState();
+  ConsumerState<MapPage> createState() => _MapPageState();
 }
 
-class _MapPageState extends State<MapPage> {
+class _MapPageState extends ConsumerState<MapPage> {
   final mapController = MapController();
   late String currentLayer;
   LatLng? userLocation;
@@ -46,10 +48,8 @@ class _MapPageState extends State<MapPage> {
     _startCompass();
   }
 
-  // ------------------LOCATION------------------------------
   String locationMessage = "Waiting for location...";
 
-  // Get Current Location
   Future<void> _getCurrentLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(
@@ -67,14 +67,12 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  // Listen to location updates
   void _liveLocation() {
     LocationSettings locationSettings = const LocationSettings(
       accuracy: LocationAccuracy.high,
       distanceFilter: 10,
     );
 
-    // Update message immediately when we start listening
     setState(() {
       locationMessage = 'Live location active';
     });
@@ -83,7 +81,6 @@ class _MapPageState extends State<MapPage> {
         .listen((Position position) {
       setState(() {
         userLocation = LatLng(position.latitude, position.longitude);
-        // Update message with each new position
         locationMessage =
             'Live location active: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
       });
@@ -97,9 +94,6 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  // ------------------LOCATION END-----------------------
-
-  // ------------------COMPASS------------------------------
   StreamSubscription<CompassEvent>? _compassSubscription;
 
   void _startCompass() {
@@ -120,13 +114,11 @@ class _MapPageState extends State<MapPage> {
     super.dispose();
   }
 
-  // ------------------COMPASS END------------------------------
-
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final eventLatLngs = ref.watch(eventLatLngsProvider);
 
-    // Update the Default layer based on the theme
     layers['Default'] = TileLayer(
       urlTemplate: isDarkMode
           ? "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
@@ -166,6 +158,18 @@ class _MapPageState extends State<MapPage> {
                             ),
                           ),
                         ),
+                      ...eventLatLngs.map(
+                        (eventLatLng) => Marker(
+                          point: eventLatLng,
+                          width: 40,
+                          height: 40,
+                          child: const Icon(
+                            Icons.location_on,
+                            color: Colors.red,
+                            size: 40,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -176,7 +180,6 @@ class _MapPageState extends State<MapPage> {
                 child: FloatingActionButton(
                   backgroundColor: const Color.fromARGB(100, 10, 123, 158),
                   onPressed: () {
-                    // Show a simple dialog to select layers
                     showDialog(
                       context: context,
                       builder: (context) => SimpleDialog(
@@ -255,7 +258,7 @@ class _MapPageState extends State<MapPage> {
       case 'Esri World Imagery':
         return Icons.photo_camera;
       default:
-        return Icons.layers; // Default icon if layer is not recognized
+        return Icons.layers;
     }
   }
 

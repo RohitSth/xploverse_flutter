@@ -7,6 +7,7 @@ class Event {
   final double lat;
   final double lon;
   final List<dynamic> images;
+  final List<dynamic> categories;
   final DateTime startDate;
   final DateTime endDate;
   final int maxParticipants;
@@ -22,6 +23,7 @@ class Event {
     required this.lat,
     required this.lon,
     required this.images,
+    required this.categories,
     required this.startDate,
     required this.endDate,
     required this.maxParticipants,

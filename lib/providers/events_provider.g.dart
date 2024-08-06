@@ -35,5 +35,19 @@ final reducedEventsProvider = AutoDisposeProvider<List<Event>>.internal(
 );
 
 typedef ReducedEventsRef = AutoDisposeProviderRef<List<Event>>;
+String _$eventLatLngsHash() => r'549f060eb6c2c9ac258842cf075302fc9093e9c0';
+
+/// See also [eventLatLngs].
+@ProviderFor(eventLatLngs)
+final eventLatLngsProvider = AutoDisposeProvider<List<LatLng>>.internal(
+  eventLatLngs,
+  name: r'eventLatLngsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$eventLatLngsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef EventLatLngsRef = AutoDisposeProviderRef<List<LatLng>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
