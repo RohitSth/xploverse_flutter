@@ -28,23 +28,4 @@ class Event {
     required this.ticketsBooked,
     required this.ticketPrice,
   });
-
-  // factory Event.fromJson(Map<String, dynamic> json) {
-  //   return Event(
-  //     id: json['_id'] ?? '',
-  //     organizerId: json['organizerId'] ?? '',
-  //     title: json['title'] ?? '',
-  //     description: json['description'] ?? '',
-  //     address: json['address'] ?? '',
-  //     lat: json['lat']?.toDouble() ?? 0.0,
-  //     lon: json['lon']?.toDouble() ?? 0.0,
-  //     images: json['images'] ?? [],
-  //     startDate: DateTime.parse(json['startDate']),
-  //     endDate: DateTime.parse(json['endDate']),
-  //     maxParticipants: json['maxParticipants'] ?? 0,
-  //     ticketsBooked: json['ticketsBooked'] ?? 0,
-  //     createdAt: DateTime.parse(json['createdAt']),
-  //     updatedAt: DateTime.parse(json['updatedAt']),
-  //   );
-  // }
 }

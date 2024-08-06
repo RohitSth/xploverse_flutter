@@ -17,30 +17,38 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
     final bookedEvents = ref.watch(bookedNotifierProvider);
 
     return Scaffold(
-      body: Container(
-          padding: const EdgeInsets.all(25),
-          child: Column(
-            children: bookedEvents.map((event) {
-              return Container(
-                padding: const EdgeInsets.only(top: 7, bottom: 7),
-                child: Row(
-                  children: [
-                    Image.asset(event.images[0], width: 60, height: 60),
-                    const SizedBox(width: 10),
-                    Text(
-                      event.title.length > 12
-                          ? '${event.title.substring(0, 12)}...'
-                          : event.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const Expanded(child: SizedBox()),
-                    Text('Nrs.${event.ticketPrice}')
-                  ],
+      body: Padding(
+        padding: const EdgeInsets.all(25),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(
+                    left: 7, top: 0, right: 7, bottom: 90),
+                child: Column(
+                  children: bookedEvents.map((event) {
+                    return Row(
+                      children: [
+                        Image.asset(event.images[0], width: 60, height: 60),
+                        const SizedBox(width: 10),
+                        Text(
+                          event.title.length > 12
+                              ? '${event.title.substring(0, 12)}...'
+                              : event.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Expanded(child: SizedBox()),
+                        Text('Nrs.${event.ticketPrice}')
+                      ],
+                    );
+                  }).toList(),
                 ),
-              );
-            }).toList(),
-          )),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
