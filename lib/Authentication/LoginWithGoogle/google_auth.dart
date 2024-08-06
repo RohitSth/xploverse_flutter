@@ -4,73 +4,68 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class FirebaseServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ],
+    forceCodeForRefreshToken: true,
+    // clientId: 'YOUR_CLIENT_ID_HERE', // Uncomment and add for iOS
+  );
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<String> signInWithGoogle(String userType) async {
     try {
+      // Sign out from any previous sessions
+      await _googleSignIn.signOut();
+
+      // Trigger the authentication flow
       final GoogleSignInAccount? googleSignInAccount =
           await _googleSignIn.signIn();
-      if (googleSignInAccount != null) {
-        final GoogleSignInAuthentication googleSignInAuthentication =
-            await googleSignInAccount.authentication;
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleSignInAuthentication.accessToken,
-          idToken: googleSignInAuthentication.idToken,
-        );
 
-        final UserCredential userCredential =
-            await _auth.signInWithCredential(credential);
-        final User? user = userCredential.user;
+      if (googleSignInAccount == null) {
+        // User cancelled the sign-in process
+        return "User cancelled sign in";
+      }
 
-        if (user != null) {
-          // Check if this is a new user
-          final DocumentSnapshot userDoc =
-              await _firestore.collection('users').doc(user.uid).get();
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
 
-          if (!userDoc.exists) {
-            // If it's a new user, save their info including the user type
-            Map<String, dynamic> userData = {
-              'uid': user.uid,
-              'email': user.email,
-              'username': user.displayName,
-              'usertype': userType,
-            };
+      // Create a new credential
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleSignInAuthentication.accessToken,
+        idToken: googleSignInAuthentication.idToken,
+      );
 
-            if (userType == 'Organizer') {
-              // For organizers, we need to collect additional information
-              // You should implement a UI to collect this information
-              // For now, we'll just return a message indicating that more info is needed
-              return "additional_info_needed";
-            }
+      // Sign in to Firebase with the Google credential
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      final User? user = userCredential.user;
 
-            await _firestore.collection('users').doc(user.uid).set(userData);
-          } else {
-            // If user already exists, update the usertype
-            await _firestore.collection('users').doc(user.uid).update({
-              'usertype': userType,
-            });
-          }
+      if (user != null) {
+        // Check if this is a new user
+        final DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(user.uid).get();
 
-          return "success";
+        if (!userDoc.exists) {
+          // If it's a new user, save their info including the user type
+          Map<String, dynamic> userData = {
+            'uid': user.uid,
+            'email': user.email,
+            'username': user.displayName,
+            'usertype': userType,
+          };
+
+          await _firestore.collection('users').doc(user.uid).set(userData);
         }
+
+        return "success";
       }
       return "Google Sign In failed";
     } catch (e) {
-      return e.toString();
-    }
-  }
-
-  Future<String> completeOrganizerSignup(
-      String uid, String organization, String phone) async {
-    try {
-      await _firestore.collection('users').doc(uid).update({
-        'organization': organization,
-        'phone': phone,
-      });
-      return "success";
-    } catch (e) {
-      return e.toString();
+      print('Error during Google Sign In: $e');
+      return "Error: $e";
     }
   }
 

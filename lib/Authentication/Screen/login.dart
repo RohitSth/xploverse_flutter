@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_xploverse/Authentication/LoginWithGoogle/google_auth.dart';
@@ -13,7 +11,7 @@ import 'package:flutter_xploverse/Authentication/Widgets/snackbar.dart';
 import 'package:flutter_xploverse/Authentication/Widgets/text_field.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -22,44 +20,49 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController organizerCodeController = TextEditingController();
   bool isLoading = false;
 
   final FirebaseServices _firebaseServices = FirebaseServices();
 
   @override
   void dispose() {
-    super.dispose();
     emailController.dispose();
     passwordController.dispose();
+    super.dispose();
   }
 
   void loginUser() async {
-    String res = await AuthServices().loginUser(
-        email: emailController.text, password: passwordController.text);
-
-    if (res == "success") {
-      setState(() {
-        isLoading = true;
-      });
-      Navigator.of(context).pushReplacement(
-        FadePageRoute(page: const HomeScreen()),
-      );
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      showSnackBar(context, res);
-    }
-  }
-
-  void _signInWithGoogle(String userType) async {
     setState(() {
       isLoading = true;
     });
 
-    String result = await FirebaseServices().signInWithGoogle(userType);
+    String res = await AuthServices().loginUser(
+      email: emailController.text,
+      password: passwordController.text,
+    );
 
+    setState(() {
+      isLoading = false;
+    });
+
+    if (res == "success") {
+      Navigator.of(context).pushReplacement(
+        FadePageRoute(page: const HomeScreen()),
+      );
+    } else {
+      showSnackBar(context, res);
+    }
+  }
+
+  void _signInWithGoogle() async {
+    if (!mounted) return;
+    setState(() {
+      isLoading = true;
+    });
+
+    String result = await _firebaseServices.signInWithGoogle("Explorer");
+
+    if (!mounted) return;
     setState(() {
       isLoading = false;
     });
@@ -125,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     elevation: 5,
                   ),
-                  onPressed: () => _signInWithGoogle("Explorer"),
+                  onPressed: _signInWithGoogle,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -166,17 +169,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const Text(
                       "Sign up here",
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Colors.blue),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(
-                  height: MediaQuery.of(context)
-                      .viewInsets
-                      .bottom) // Extra padding to ensure the content is visible when the keyboard is shown
+              SizedBox(height: MediaQuery.of(context).viewInsets.bottom)
             ],
           ),
         ),
