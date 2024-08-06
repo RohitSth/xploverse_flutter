@@ -174,7 +174,7 @@ class _MapPageState extends State<MapPage> {
                 bottom: 100,
                 right: 10,
                 child: FloatingActionButton(
-                  backgroundColor: const Color.fromARGB(100, 79, 155, 218),
+                  backgroundColor: const Color.fromARGB(100, 10, 123, 158),
                   onPressed: () {
                     // Show a simple dialog to select layers
                     showDialog(
@@ -234,7 +234,7 @@ class _MapPageState extends State<MapPage> {
                 bottom: 160,
                 right: 10,
                 child: FloatingActionButton(
-                  backgroundColor: const Color.fromARGB(100, 79, 155, 218),
+                  backgroundColor: const Color.fromARGB(100, 10, 123, 158),
                   onPressed: _moveToCurrentLocation,
                   child: const Icon(Icons.my_location),
                 ),

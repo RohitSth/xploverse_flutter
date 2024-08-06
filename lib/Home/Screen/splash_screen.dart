@@ -18,7 +18,6 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  bool _showText = false;
 
   @override
   void initState() {
@@ -33,17 +32,14 @@ class _SplashScreenState extends State<SplashScreen>
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
     _controller.forward();
 
-    Timer(const Duration(seconds: 3), () {
-      setState(() {
-        _showText = true;
-      });
+    Timer(const Duration(seconds: 2), () {
       Timer(const Duration(seconds: 1), () {
         Navigator.pushReplacement(
           context,
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 const AuthenticationWrapper(),
-            transitionDuration: const Duration(milliseconds: 800),
+            transitionDuration: const Duration(milliseconds: 600),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
               return FadeTransition(
@@ -71,26 +67,13 @@ class _SplashScreenState extends State<SplashScreen>
         child: SizedBox(
           width: double.infinity,
           height: 300, // Adjust as needed
-          child: _showText
-              ? AnimatedSwitcher(
-                  duration: const Duration(seconds: 1),
-                  child: Text(
-                    'XPLOVERSE',
-                    key: UniqueKey(),
-                    style: GoogleFonts.lato(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-                )
-              : FadeTransition(
-                  opacity: _animation,
-                  child: SvgPicture.asset(
-                    "images/XploverseLogo.svg",
-                    key: UniqueKey(),
-                  ),
-                ),
+          child: FadeTransition(
+            opacity: _animation,
+            child: SvgPicture.asset(
+              "images/XploverseLogo.svg",
+              key: UniqueKey(),
+            ),
+          ),
         ),
       ),
     );

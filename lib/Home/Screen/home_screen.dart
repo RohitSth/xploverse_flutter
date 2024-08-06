@@ -46,10 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Theme(
       data: theme.copyWith(
-        primaryColor: Colors.blue,
+        primaryColor: const Color.fromARGB(255, 10, 123, 158),
         appBarTheme: AppBarTheme(
-          backgroundColor: _isDarkMode ? Colors.grey[900] : Colors.white,
-          foregroundColor: _isDarkMode ? Colors.white : Colors.black,
+          backgroundColor: _isDarkMode ? Colors.black54 : Colors.white54,
+          foregroundColor: _isDarkMode ? Colors.white54 : Colors.black54,
           elevation: 0,
         ),
       ),
@@ -57,7 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
         extendBody:
             true, // This allows the body to extend behind the bottom nav bar
         appBar: AppBar(
-          backgroundColor: _isDarkMode ? Colors.black54 : Colors.white54,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -84,64 +83,75 @@ class _HomeScreenState extends State<HomeScreen> {
           index: _currentIndex,
           children: _children,
         ),
-        bottomNavigationBar: Container(
-          margin: const EdgeInsets.all(20),
-          height: size.width * .155,
-          decoration: BoxDecoration(
-            color: _isDarkMode ? Colors.black54 : Colors.white54,
-            border: Border.all(
-              color: const Color.fromARGB(255, 79, 155, 218),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(.15),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
+        bottomNavigationBar: LayoutBuilder(builder: (context, constraints) {
+          // Calculate the available width
+          double availableWidth = constraints.maxWidth;
+
+          // Adjust the navigation bar height based on orientation
+          double navBarHeight = availableWidth < 600 ? size.width * .155 : 60;
+
+          // Calculate the icon size based on orientation
+          double iconSize = availableWidth < 600 ? size.width * .076 : 30;
+
+          return Container(
+            margin: const EdgeInsets.all(20),
+            height: navBarHeight,
+            decoration: BoxDecoration(
+              color: _isDarkMode ? Colors.black54 : Colors.white54,
+              border: Border.all(
+                color: const Color.fromARGB(255, 10, 123, 158),
               ),
-            ],
-            borderRadius: BorderRadius.circular(50),
-          ),
-          child: ListView.builder(
-            itemCount: 4,
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: size.width * .024),
-            itemBuilder: (context, index) => InkWell(
-              onTap: () => onTabTapped(index),
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 1500),
-                    curve: Curves.fastLinearToSlowEaseIn,
-                    margin: EdgeInsets.only(
-                      bottom: index == _currentIndex ? 0 : size.width * .029,
-                      right: size.width * .0422,
-                      left: size.width * .0422,
-                    ),
-                    width: size.width * .128,
-                    height: index == _currentIndex ? size.width * .014 : 0,
-                    decoration: const BoxDecoration(
-                      color: Color.fromARGB(255, 79, 155, 218),
-                      borderRadius: BorderRadius.vertical(
-                        bottom: Radius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: ListView.builder(
+              itemCount: 4,
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: size.width * .024),
+              itemBuilder: (context, index) => InkWell(
+                onTap: () => onTabTapped(index),
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 1500),
+                      curve: Curves.fastLinearToSlowEaseIn,
+                      margin: EdgeInsets.only(
+                        bottom: index == _currentIndex ? 0 : size.width * .029,
+                        right: size.width * .0422,
+                        left: size.width * .0422,
+                      ),
+                      width: size.width * .128,
+                      height: index == _currentIndex ? size.width * .014 : 0,
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(255, 79, 155, 218),
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(10),
+                        ),
                       ),
                     ),
-                  ),
-                  Icon(
-                    listOfIcons[index],
-                    size: size.width * .076,
-                    color: index == _currentIndex
-                        ? (_isDarkMode ? Colors.white : Colors.black)
-                        : const Color.fromARGB(255, 79, 155, 218),
-                  ),
-                  SizedBox(height: size.width * .03),
-                ],
+                    Icon(
+                      listOfIcons[index],
+                      size: iconSize, // Use calculated icon size
+                      color: index == _currentIndex
+                          ? (_isDarkMode ? Colors.white : Colors.black)
+                          : const Color.fromARGB(255, 10, 123, 158),
+                    ),
+                    SizedBox(height: size.width * .03),
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        }),
       ),
     );
   }
@@ -177,9 +187,13 @@ class UserProfileDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       icon: CircleAvatar(
-        backgroundImage: NetworkImage(
-          FirebaseAuth.instance.currentUser!.photoURL ?? '',
-        ),
+        radius: 20,
+        backgroundColor: const Color.fromARGB(255, 10, 123, 158),
+        child: CircleAvatar(
+            radius: 18,
+            backgroundImage: NetworkImage(
+              FirebaseAuth.instance.currentUser!.photoURL ?? '',
+            )),
       ),
       onSelected: (String value) async {
         if (value == 'Logout') {
