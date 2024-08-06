@@ -87,7 +87,10 @@ class _HomeScreenState extends State<HomeScreen> {
           margin: const EdgeInsets.all(20),
           height: size.width * .155,
           decoration: BoxDecoration(
-            color: _isDarkMode ? Colors.grey[800] : Colors.white,
+            color: _isDarkMode ? Colors.black54 : Colors.white54,
+            border: Border.all(
+              color: const Color.fromARGB(255, 79, 155, 218),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(.15),
@@ -119,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: size.width * .128,
                     height: index == _currentIndex ? size.width * .014 : 0,
                     decoration: const BoxDecoration(
-                      color: Colors.blueAccent,
+                      color: Color.fromARGB(255, 79, 155, 218),
                       borderRadius: BorderRadius.vertical(
                         bottom: Radius.circular(10),
                       ),
@@ -129,8 +132,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     listOfIcons[index],
                     size: size.width * .076,
                     color: index == _currentIndex
-                        ? Colors.blueAccent
-                        : (_isDarkMode ? Colors.white : Colors.black38),
+                        ? (_isDarkMode ? Colors.white : Colors.black)
+                        : const Color.fromARGB(255, 79, 155, 218),
                   ),
                   SizedBox(height: size.width * .03),
                 ],

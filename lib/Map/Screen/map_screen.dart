@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -13,6 +14,8 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   final mapController = MapController();
   late String currentLayer;
+  LatLng? userLocation;
+  double _direction = 0;
 
   final Map<String, TileLayer> layers = {
     'Default': TileLayer(
@@ -36,54 +39,73 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     currentLayer = 'Default';
+    _getCurrentLocation();
+    _startCompass();
   }
 
   // ------------------LOCATION------------------------------
-  String locationMessage = "Current location";
-  late String lat;
-  late String long;
+  String locationMessage = "Waiting for location...";
 
   // Get Current Location
-  Future<Position> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error("Location services are disabled.");
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        userLocation = LatLng(position.latitude, position.longitude);
+        locationMessage = "Access Provided";
+      });
+      _moveToCurrentLocation();
+      _liveLocation();
+    } catch (e) {
+      setState(() {
+        locationMessage = "Error getting location: $e";
+      });
     }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error("Location permissions are denied");
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          "Location permissions are permanently denied, we cannot request permission");
-    }
-
-    return await Geolocator.getCurrentPosition();
   }
 
   // Listen to location updates
   void _liveLocation() {
     LocationSettings locationSettings = const LocationSettings(
-      accuracy: LocationAccuracy.bestForNavigation,
-      distanceFilter: 100,
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10,
     );
+
+    // Update message immediately when we start listening
+    setState(() {
+      locationMessage = 'Live location active';
+    });
 
     Geolocator.getPositionStream(locationSettings: locationSettings)
         .listen((Position position) {
-      lat = position.latitude.toString();
-      long = position.longitude.toString();
-
       setState(() {
-        locationMessage = 'Latitude: $lat, Longitude: $long';
+        userLocation = LatLng(position.latitude, position.longitude);
+        // Update message with each new position
+        locationMessage =
+            'Live location active: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
       });
+      _moveToCurrentLocation();
     });
   }
 
-  // ------------------LOCATION------------------------------
+  void _moveToCurrentLocation() {
+    if (userLocation != null) {
+      mapController.move(userLocation!, 15.0);
+    }
+  }
+
+  // ------------------LOCATION END-----------------------
+
+  // ------------------COMPASS------------------------------
+  void _startCompass() {
+    FlutterCompass.events?.listen((CompassEvent event) {
+      setState(() {
+        _direction = event.heading ?? 0;
+      });
+      mapController.rotate(-_direction * (pi / 180));
+    });
+  }
+  // ------------------COMPASS END------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -107,105 +129,101 @@ class _MapPageState extends State<MapPage> {
                 mapController: mapController,
                 options: const MapOptions(
                   initialCenter: LatLng(40.7128, -74.0060), // New York City
-                  initialZoom: 10.0,
+                  initialZoom: 15.0,
                   interactionOptions: InteractionOptions(
                     flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                   ),
                 ),
                 children: [
                   layers[currentLayer]!,
-                  const MarkerLayer(
+                  MarkerLayer(
                     markers: [
-                      Marker(
-                        point: LatLng(40.7128, -74.0060),
-                        width: 80,
-                        height: 80,
-                        child: Icon(Icons.location_on,
-                            color: Colors.red, size: 40),
-                      ),
+                      if (userLocation != null)
+                        Marker(
+                          point: userLocation!,
+                          width: 20,
+                          height: 20,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.7),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ],
               ),
               Positioned(
-                // Add a PopupMenuButton to change the layer
                 bottom: 100,
                 right: 10,
+                child: FloatingActionButton(
+                  backgroundColor: const Color.fromARGB(100, 79, 155, 218),
+                  onPressed: () {
+                    // Show a simple dialog to select layers
+                    showDialog(
+                      context: context,
+                      builder: (context) => SimpleDialog(
+                        title: const Text('Select Layer'),
+                        children: layers.keys.map((String choice) {
+                          return SimpleDialogOption(
+                            onPressed: () {
+                              setState(() {
+                                currentLayer = choice;
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: Text(choice),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.layers),
+                ),
+              ),
+              Positioned(
+                top: 10,
+                left: 10,
                 child: Container(
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDarkMode ? Colors.white24 : Colors.black26,
+                    color: isDarkMode ? Colors.black54 : Colors.white70,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: PopupMenuButton<String>(
-                    icon: Icon(
-                      getLayerIcon(currentLayer),
-                      color: isDarkMode ? Colors.white : Colors.black,
-                    ),
-                    onSelected: (String value) {
-                      setState(() {
-                        currentLayer = value;
-                      });
-                    },
-                    offset: const Offset(0, -170), // Position above the button
-                    itemBuilder: (BuildContext context) {
-                      return layers.keys.map((String choice) {
-                        return PopupMenuItem<String>(
-                          value: choice,
-                          child: Row(
-                            children: [
-                              Icon(
-                                getLayerIcon(choice),
-                                color: isDarkMode ? Colors.white : Colors.black,
-                              ),
-                              const SizedBox(width: 7),
-                              Text(
-                                choice,
-                                style: TextStyle(
-                                  color:
-                                      isDarkMode ? Colors.white : Colors.black,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                  child: Row(
+                    children: [
+                      if (locationMessage.startsWith('Live location active'))
+                        Container(
+                          width: 10,
+                          height: 10,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.green,
                           ),
-                        );
-                      }).toList();
-                    },
+                        ),
+                      Text(
+                        locationMessage,
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              Positioned(top: 10, right: 10, child: Text(locationMessage)),
               Positioned(
-                  bottom: 160,
-                  right: 10,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _getCurrentLocation().then((value) {
-                        lat = '${value.latitude}';
-                        long = '${value.longitude}';
-                        setState(() {
-                          locationMessage = 'Lat: $lat, Long: $long';
-                        });
-                        _liveLocation();
-                      });
-                    },
-                    child: const Icon(Icons.my_location),
-                  )),
-              // Positioned(
-              //   bottom: 10,
-              //   right: 10,
-              //   child: Container(
-              //     padding: const EdgeInsets.all(4),
-              //     color: isDarkMode ? Colors.black54 : Colors.white54,
-              //     child: Text(
-              //       getAttribution(),
-              //       style: TextStyle(
-              //         color: isDarkMode ? Colors.white70 : Colors.black54,
-              //         fontSize: 10,
-              //       ),
-              //     ),
-              //   ),
-              // ),
+                bottom: 160,
+                right: 10,
+                child: FloatingActionButton(
+                  backgroundColor: const Color.fromARGB(100, 79, 155, 218),
+                  onPressed: _moveToCurrentLocation,
+                  child: const Icon(Icons.my_location),
+                ),
+              ),
             ],
           );
         },
