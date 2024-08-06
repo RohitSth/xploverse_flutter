@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_xploverse/screens/auth/login.dart';
 import 'package:flutter_xploverse/screens/home/home_screen.dart';
 

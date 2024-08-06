@@ -24,7 +24,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-final counterStateProvider = StateProvider<int>((ref) {
-  return 0;
-});

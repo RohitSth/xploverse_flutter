@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -97,56 +99,66 @@ class _HomeScreenState extends State<HomeScreen> {
             margin: const EdgeInsets.all(20),
             height: navBarHeight,
             decoration: BoxDecoration(
-              color: _isDarkMode ? Colors.black54 : Colors.white54,
+              color: _isDarkMode
+                  ? Colors.black.withOpacity(0.2)
+                  : Colors.white.withOpacity(0.2), // Glass morphism background
               border: Border.all(
                 color: const Color.fromARGB(255, 10, 123, 158),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(.15),
+                  color: Colors.black.withOpacity(0.15),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
                 ),
               ],
               borderRadius: BorderRadius.circular(50),
             ),
-            child: ListView.builder(
-              itemCount: 4,
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: size.width * .024),
-              itemBuilder: (context, index) => InkWell(
-                onTap: () => onTabTapped(index),
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 1500),
-                      curve: Curves.fastLinearToSlowEaseIn,
-                      margin: EdgeInsets.only(
-                        bottom: index == _currentIndex ? 0 : size.width * .029,
-                        right: size.width * .0422,
-                        left: size.width * .0422,
-                      ),
-                      width: size.width * .128,
-                      height: index == _currentIndex ? size.width * .014 : 0,
-                      decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 79, 155, 218),
-                        borderRadius: BorderRadius.vertical(
-                          bottom: Radius.circular(10),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
+                child: ListView.builder(
+                  itemCount: 4,
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: size.width * .024),
+                  itemBuilder: (context, index) => InkWell(
+                    onTap: () => onTabTapped(index),
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 1500),
+                          curve: Curves.fastLinearToSlowEaseIn,
+                          margin: EdgeInsets.only(
+                            bottom:
+                                index == _currentIndex ? 0 : size.width * .029,
+                            right: size.width * .0422,
+                            left: size.width * .0422,
+                          ),
+                          width: size.width * .128,
+                          height:
+                              index == _currentIndex ? size.width * .014 : 0,
+                          decoration: const BoxDecoration(
+                            color: Color.fromARGB(255, 79, 155, 218),
+                            borderRadius: BorderRadius.vertical(
+                              bottom: Radius.circular(10),
+                            ),
+                          ),
                         ),
-                      ),
+                        Icon(
+                          listOfIcons[index],
+                          size: iconSize, // Use calculated icon size
+                          color: index == _currentIndex
+                              ? (_isDarkMode ? Colors.white : Colors.black)
+                              : const Color.fromARGB(255, 10, 123, 158),
+                        ),
+                        SizedBox(height: size.width * .03),
+                      ],
                     ),
-                    Icon(
-                      listOfIcons[index],
-                      size: iconSize, // Use calculated icon size
-                      color: index == _currentIndex
-                          ? (_isDarkMode ? Colors.white : Colors.black)
-                          : const Color.fromARGB(255, 10, 123, 158),
-                    ),
-                    SizedBox(height: size.width * .03),
-                  ],
+                  ),
                 ),
               ),
             ),
