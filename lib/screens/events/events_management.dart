@@ -304,10 +304,14 @@ class _EventsManagementState extends State<EventsManagement> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showEventDialog(),
-        child: const Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 85.0),
+        child: FloatingActionButton(
+          onPressed: () => _showEventDialog(),
+          child: const Icon(Icons.add),
+        ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 

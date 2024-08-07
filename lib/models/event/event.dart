@@ -77,4 +77,6 @@ class Event {
   }
 
   static fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {}
+
+  static fromMap(Map<String, dynamic> data) {}
 }

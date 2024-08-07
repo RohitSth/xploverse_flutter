@@ -8,6 +8,7 @@ import 'package:flutter_xploverse/providers/booked_provider.dart';
 import 'package:flutter_xploverse/screens/auth/login.dart';
 import 'package:flutter_xploverse/models/auth/authentication.dart';
 import 'package:flutter_xploverse/screens/events/events_management.dart';
+import 'package:flutter_xploverse/screens/events/events_screen.dart';
 import 'package:flutter_xploverse/screens/tickets/tickets_screen.dart';
 import 'package:flutter_xploverse/screens/home/fade_page_route.dart';
 import 'package:flutter_xploverse/screens/home/profile_screen.dart';
@@ -32,8 +33,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   final List<Widget> _children = [
     const MapPage(),
-    const EventsManagement(),
+    const EventsScreen(),
     const TicketsScreen(),
+    const EventsManagement(),
     const ProfileScreen(),
   ];
 
@@ -123,7 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
                 child: ListView.builder(
-                  itemCount: 4,
+                  itemCount: 5,
                   scrollDirection: Axis.horizontal,
                   padding: EdgeInsets.symmetric(horizontal: size.width * .024),
                   itemBuilder: (context, index) => InkWell(
@@ -203,6 +205,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 2:
         return 'TICKETS';
       case 3:
+        return 'MANAGE EVENTS';
+      case 4:
         return 'PROFILE';
       default:
         return 'XPLOVERSE';
@@ -213,6 +217,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Icons.map,
     Icons.event,
     Icons.bookmark,
+    Icons.energy_savings_leaf_outlined,
     Icons.person_rounded,
   ];
 }
