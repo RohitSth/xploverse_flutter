@@ -7,7 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_xploverse/providers/booked_provider.dart';
 import 'package:flutter_xploverse/screens/auth/login.dart';
 import 'package:flutter_xploverse/models/auth/authentication.dart';
-import 'package:flutter_xploverse/screens/events/events_creation.dart';
+import 'package:flutter_xploverse/screens/events/events_management.dart';
 import 'package:flutter_xploverse/screens/tickets/tickets_screen.dart';
 import 'package:flutter_xploverse/screens/home/fade_page_route.dart';
 import 'package:flutter_xploverse/screens/home/profile_screen.dart';
@@ -32,7 +32,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   final List<Widget> _children = [
     const MapPage(),
-    const EventsCreation(),
+    const EventsManagement(),
     const TicketsScreen(),
     const ProfileScreen(),
   ];

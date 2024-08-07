@@ -13,8 +13,8 @@ List<Event> allEvents = [
       description:
           "Known for its diverse lineup of music, art installations, and desert vibes.",
       address: "Indio, CA, USA",
-      lat: 33.720577,
-      lon: -116.215561,
+      latitude: 33.720577,
+      longitude: -116.215561,
       images: [
         "images/ev.jpg",
       ],
@@ -31,8 +31,8 @@ List<Event> allEvents = [
       description:
           "A legendary festival with a mix of music, arts, and performance, featuring iconic headliners.",
       address: "Pilton, UK",
-      lat: 51.166729,
-      lon: -2.590650,
+      latitude: 51.166729,
+      longitude: -2.590650,
       images: [
         "images/ev.jpg",
       ],
@@ -50,8 +50,8 @@ List<Event> allEvents = [
       description:
           "A vibrant and colorful celebration with parades, music, and dancing.",
       address: "Various locations in Brazil",
-      lat: -14.235004, // Approximate coordinates for Brazil
-      lon: -51.925282,
+      latitude: -14.235004, // Approximate coordinates for Brazil
+      longitude: -51.925282,
       images: [
         "images/ev.jpg",
       ],
@@ -68,8 +68,8 @@ List<Event> allEvents = [
     description:
         "A traditional beer festival with food, music, and amusement rides.",
     address: "Munich, Germany",
-    lat: 48.135124,
-    lon: 11.581981,
+    latitude: 48.135124,
+    longitude: 11.581981,
     images: [
       "images/ev.jpg",
     ],
@@ -88,8 +88,8 @@ List<Event> allEvents = [
     description:
         "A global event featuring athletic competitions in various sports.",
     address: "Paris, France",
-    lat: 48.856613,
-    lon: 2.352222,
+    latitude: 48.856613,
+    longitude: 2.352222,
     images: [
       "images/ev.jpg",
     ],
@@ -108,8 +108,8 @@ List<Event> allEvents = [
     description:
         "A major international art fair featuring contemporary and modern art.",
     address: "Miami Beach, FL, USA",
-    lat: 40.761147,
-    lon: -73.985741,
+    latitude: 40.761147,
+    longitude: -73.985741,
     images: [
       "images/ev.jpg",
     ],
@@ -128,8 +128,8 @@ List<Event> allEvents = [
     description:
         "A food festival showcasing the best of London's restaurants and food stalls.",
     address: "NY, USA",
-    lat: 40.764412,
-    lon: -73.983818,
+    latitude: 40.764412,
+    longitude: -73.983818,
     images: [
       "images/ev.jpg",
     ],
@@ -148,8 +148,8 @@ List<Event> allEvents = [
     description:
         "A challenging but rewarding trek to the summit of Africa's highest mountain.",
     address: "Tanzania",
-    lat: -6.369028, // Approximate coordinates for Kilimanjaro
-    lon: 34.888821,
+    latitude: -6.369028, // Approximate coordinates for Kilimanjaro
+    longitude: 34.888821,
     images: [
       "images/ev.jpg",
     ],
@@ -168,8 +168,8 @@ List<Event> allEvents = [
     description:
         "The world's largest consumer electronics show, showcasing the latest technology and gadgets.",
     address: "Las Vegas, NV, USA",
-    lat: 36.169090,
-    lon: -115.140579,
+    latitude: 36.169090,
+    longitude: -115.140579,
     images: [
       "images/ev.jpg",
     ],
@@ -186,8 +186,8 @@ List<Event> allEvents = [
     title: "OKAY",
     description: "The world's largest consumer",
     address: "Srilanka",
-    lat: 7.873054,
-    lon: 80.771797,
+    latitude: 7.873054,
+    longitude: 80.771797,
     images: [
       "images/ev.jpg",
     ],
@@ -204,8 +204,8 @@ List<Event> allEvents = [
     title: "Helloo",
     description: "owcasing the latest technology and gadgets.",
     address: "Bhutan",
-    lat: 27.514162,
-    lon: 90.433601,
+    latitude: 27.514162,
+    longitude: 90.433601,
     images: [
       "images/ev.jpg",
     ],
@@ -222,8 +222,8 @@ List<Event> allEvents = [
     title: "Nice",
     description: "Ice",
     address: "Las",
-    lat: 28.394857,
-    lon: 84.124008,
+    latitude: 28.394857,
+    longitude: 84.124008,
     images: [
       "images/ev.jpg",
     ],
@@ -250,5 +250,7 @@ List<Event> reducedEvents(ref) {
 @riverpod
 List<LatLng> eventLatLngs(EventLatLngsRef ref) {
   final events = ref.watch(eventsProvider);
-  return events.map((event) => LatLng(event.lat, event.lon)).toList();
+  return events
+      .map((event) => LatLng(event.latitude, event.longitude))
+      .toList();
 }

@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class EventsCreation extends StatefulWidget {
-  const EventsCreation({Key? key}) : super(key: key);
+class EventsManagement extends StatefulWidget {
+  const EventsManagement({Key? key}) : super(key: key);
 
   @override
-  State<EventsCreation> createState() => _EventsCreationState();
+  State<EventsManagement> createState() => _EventsManagementState();
 }
 
-class _EventsCreationState extends State<EventsCreation> {
+class _EventsManagementState extends State<EventsManagement> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
@@ -47,16 +47,28 @@ class _EventsCreationState extends State<EventsCreation> {
     }
   }
 
-  void _showCreateEventDialog() {
+  void _showEventDialog({String? eventId}) {
+    bool isUpdate = eventId != null;
+    if (isUpdate) {
+      _populateEventData(eventId);
+    } else {
+      _clearFields();
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return _buildDialogBox(
-          name: "Event Creation",
-          condition: "Create",
+          name: isUpdate ? "Update Event" : "Create Event",
+          condition: isUpdate ? "Update" : "Create",
           onPressed: () async {
             if (_validateFields()) {
-              await _addEvent();
+              if (isUpdate) {
+                await _updateEvent(eventId);
+              } else {
+                await _addEvent();
+              }
+              Navigator.of(context).pop();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Please fill all fields')),
@@ -88,34 +100,94 @@ class _EventsCreationState extends State<EventsCreation> {
         return;
       }
 
-      // Create a new document in Firestore
-      await allEvents.add({
-        'title': titleController.text,
-        'description': descriptionController.text,
-        'address': addressController.text,
-        'latitude': double.tryParse(latitudeController.text) ?? 0,
-        'longitude': double.tryParse(longitudeController.text) ?? 0,
-        'categories': categoriesController.text,
-        'images': imagesController.text,
-        'startDate': _startDate?.toIso8601String(),
-        'endDate': _endDate?.toIso8601String(),
-        'maxParticipants': int.tryParse(maxParticipantsController.text) ?? 0,
-        'ticketPrice': double.tryParse(ticketPriceController.text) ?? 0,
-        'organizerId': _organizerUid,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      await allEvents.add(_getEventData());
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Event created successfully')),
       );
 
-      Navigator.of(context).pop(); // Close the dialog
       _clearFields();
     } catch (e) {
       print('Error adding event: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error creating event: $e')),
       );
+    }
+  }
+
+  Future<void> _updateEvent(String eventId) async {
+    try {
+      await allEvents.doc(eventId).update(_getEventData());
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event updated successfully')),
+      );
+
+      _clearFields();
+    } catch (e) {
+      print('Error updating event: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating event: $e')),
+      );
+    }
+  }
+
+  Future<void> _deleteEvent(String eventId) async {
+    try {
+      await allEvents.doc(eventId).delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event deleted successfully')),
+      );
+    } catch (e) {
+      print('Error deleting event: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting event: $e')),
+      );
+    }
+  }
+
+  Map<String, dynamic> _getEventData() {
+    return {
+      'title': titleController.text,
+      'description': descriptionController.text,
+      'address': addressController.text,
+      'latitude': double.tryParse(latitudeController.text) ?? 0,
+      'longitude': double.tryParse(longitudeController.text) ?? 0,
+      'categories': categoriesController.text,
+      'images': imagesController.text,
+      'startDate': _startDate?.toIso8601String(),
+      'endDate': _endDate?.toIso8601String(),
+      'maxParticipants': int.tryParse(maxParticipantsController.text) ?? 0,
+      'ticketPrice': double.tryParse(ticketPriceController.text) ?? 0,
+      'organizerId': _organizerUid,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+  }
+
+  void _populateEventData(String eventId) async {
+    DocumentSnapshot eventDoc = await allEvents.doc(eventId).get();
+    Map<String, dynamic> eventData = eventDoc.data() as Map<String, dynamic>;
+
+    titleController.text = eventData['title'] ?? '';
+    descriptionController.text = eventData['description'] ?? '';
+    addressController.text = eventData['address'] ?? '';
+    latitudeController.text = eventData['latitude']?.toString() ?? '';
+    longitudeController.text = eventData['longitude']?.toString() ?? '';
+    categoriesController.text = eventData['categories'] ?? '';
+    imagesController.text = eventData['images'] ?? '';
+    maxParticipantsController.text =
+        eventData['maxParticipants']?.toString() ?? '';
+    ticketPriceController.text = eventData['ticketPrice']?.toString() ?? '';
+
+    if (eventData['startDate'] != null) {
+      _startDate = DateTime.parse(eventData['startDate']);
+      _startDateController.text = DateFormat('yyyy-MM-dd').format(_startDate!);
+    }
+
+    if (eventData['endDate'] != null) {
+      _endDate = DateTime.parse(eventData['endDate']);
+      _endDateController.text = DateFormat('yyyy-MM-dd').format(_endDate!);
     }
   }
 
@@ -185,8 +257,13 @@ class _EventsCreationState extends State<EventsCreation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Events'),
+      ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: allEvents.snapshots(),
+        stream: allEvents
+            .where('organizerId', isEqualTo: _organizerUid)
+            .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
           if (streamSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -208,19 +285,29 @@ class _EventsCreationState extends State<EventsCreation> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(documentSnapshot['description']),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () =>
+                          _showEventDialog(eventId: documentSnapshot.id),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => _deleteEvent(documentSnapshot.id),
+                    ),
+                  ],
+                ),
               );
             },
           );
         },
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 85.0),
-        child: FloatingActionButton(
-          onPressed: _showCreateEventDialog,
-          child: const Icon(Icons.add),
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showEventDialog(),
+        child: const Icon(Icons.add),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 

@@ -35,7 +35,7 @@ final reducedEventsProvider = AutoDisposeProvider<List<Event>>.internal(
 );
 
 typedef ReducedEventsRef = AutoDisposeProviderRef<List<Event>>;
-String _$eventLatLngsHash() => r'549f060eb6c2c9ac258842cf075302fc9093e9c0';
+String _$eventLatLngsHash() => r'339e7e1be8b279d9473f91b57b22acdbbddb244b';
 
 /// See also [eventLatLngs].
 @ProviderFor(eventLatLngs)
