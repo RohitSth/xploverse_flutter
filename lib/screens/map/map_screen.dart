@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_xploverse/providers/events_provider.dart';
@@ -20,7 +19,6 @@ class _MapPageState extends ConsumerState<MapPage> {
   final mapController = MapController();
   late String currentLayer;
   LatLng? userLocation;
-  double _direction = 0;
 
   final Map<String, TileLayer> layers = {
     'Default': TileLayer(
@@ -45,7 +43,6 @@ class _MapPageState extends ConsumerState<MapPage> {
     super.initState();
     currentLayer = 'Default';
     _getCurrentLocation();
-    _startCompass();
   }
 
   String locationMessage = "Waiting for location...";
@@ -94,26 +91,6 @@ class _MapPageState extends ConsumerState<MapPage> {
     }
   }
 
-  StreamSubscription<CompassEvent>? _compassSubscription;
-
-  void _startCompass() {
-    _compassSubscription = FlutterCompass.events?.listen((CompassEvent event) {
-      if (mounted) {
-        setState(() {
-          _direction = event.heading ?? 0;
-        });
-        mapController.rotate(-_direction * (math.pi / 180));
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    debugPrint('Cancelling compass subscription...');
-    _compassSubscription?.cancel();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -138,7 +115,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                   initialCenter: LatLng(40.7128, -74.0060), // New York City
                   initialZoom: 15.0,
                   interactionOptions: InteractionOptions(
-                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                    flags: InteractiveFlag.all,
                   ),
                 ),
                 children: [
