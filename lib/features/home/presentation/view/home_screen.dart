@@ -4,15 +4,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_xploverse/providers/booked_provider.dart';
-import 'package:flutter_xploverse/screens/auth/login.dart';
-import 'package:flutter_xploverse/models/auth/authentication.dart';
-import 'package:flutter_xploverse/screens/events/events_management.dart';
-import 'package:flutter_xploverse/screens/events/events_screen.dart';
-import 'package:flutter_xploverse/screens/tickets/tickets_screen.dart';
-import 'package:flutter_xploverse/screens/home/fade_page_route.dart';
-import 'package:flutter_xploverse/screens/home/profile_screen.dart';
-import 'package:flutter_xploverse/screens/map/map_screen.dart';
+import 'package:flutter_xploverse/features/home/presentation/navigator/booked_provider.dart';
+import 'package:flutter_xploverse/features/auth/presentation/view/login.dart';
+import 'package:flutter_xploverse/features/auth/presentation/viewmodel/authentication.dart';
+import 'package:flutter_xploverse/features/event/presentation/view/events_management.dart';
+import 'package:flutter_xploverse/features/event/presentation/view/events_screen.dart';
+import 'package:flutter_xploverse/features/event/presentation/view/tickets_view/tickets_screen.dart';
+import 'package:flutter_xploverse/features/home/presentation/view/bottom_view/fade_page_route.dart';
+import 'package:flutter_xploverse/features/home/presentation/view/bottom_view/profile_screen.dart';
+import 'package:flutter_xploverse/features/map/presentation/view/map_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});

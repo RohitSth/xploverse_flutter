@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_xploverse/screens/home/fade_page_route.dart';
-import 'package:flutter_xploverse/screens/home/home_screen.dart';
-import 'package:flutter_xploverse/screens/auth/login.dart';
-import 'package:flutter_xploverse/models/auth/authentication.dart';
-import 'package:flutter_xploverse/shared/button.dart';
-import 'package:flutter_xploverse/shared/custom_dropdown.dart';
-import 'package:flutter_xploverse/shared/snackbar.dart';
-import 'package:flutter_xploverse/shared/text_field.dart';
+import 'package:flutter_xploverse/features/home/presentation/view/bottom_view/fade_page_route.dart';
+import 'package:flutter_xploverse/features/home/presentation/view/home_screen.dart';
+import 'package:flutter_xploverse/features/auth/presentation/view/login.dart';
+import 'package:flutter_xploverse/features/auth/presentation/viewmodel/authentication.dart';
+import 'package:flutter_xploverse/features/home/presentation/widget/button.dart';
+import 'package:flutter_xploverse/features/home/presentation/widget/custom_dropdown.dart';
+import 'package:flutter_xploverse/features/event/presentation/widgets/snackbar.dart';
+import 'package:flutter_xploverse/features/event/presentation/widgets/text_field.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);

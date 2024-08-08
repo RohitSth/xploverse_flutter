@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:flutter_xploverse/models/event/event.dart';
+import 'package:flutter_xploverse/features/event/presentation/viewmodel/event.dart';
 import 'package:latlong2/latlong.dart';
 
 part 'events_provider.g.dart';

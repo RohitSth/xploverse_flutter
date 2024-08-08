@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_xploverse/models/auth/google_auth.dart';
-import 'package:flutter_xploverse/screens/auth/password_forget.dart';
-import 'package:flutter_xploverse/screens/home/fade_page_route.dart';
-import 'package:flutter_xploverse/screens/home/home_screen.dart';
-import 'package:flutter_xploverse/screens/auth/signup.dart';
-import 'package:flutter_xploverse/models/auth/authentication.dart';
-import 'package:flutter_xploverse/shared/button.dart';
-import 'package:flutter_xploverse/shared/snackbar.dart';
-import 'package:flutter_xploverse/shared/text_field.dart';
+import 'package:flutter_xploverse/features/auth/presentation/viewmodel/google_auth.dart';
+import 'package:flutter_xploverse/features/auth/presentation/view/password_forget.dart';
+import 'package:flutter_xploverse/features/home/presentation/view/bottom_view/fade_page_route.dart';
+import 'package:flutter_xploverse/features/home/presentation/view/home_screen.dart';
+import 'package:flutter_xploverse/features/auth/presentation/view/signup.dart';
+import 'package:flutter_xploverse/features/auth/presentation/viewmodel/authentication.dart';
+import 'package:flutter_xploverse/features/home/presentation/widget/button.dart';
+import 'package:flutter_xploverse/features/event/presentation/widgets/snackbar.dart';
+import 'package:flutter_xploverse/features/event/presentation/widgets/text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
