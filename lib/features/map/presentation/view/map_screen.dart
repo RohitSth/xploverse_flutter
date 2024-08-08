@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_xploverse/features/home/presentation/navigator/events_provider.dart';
+import 'package:flutter_xploverse/features/event/presentation/navigator/events_provider.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/events_screen.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -218,8 +219,8 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
           Positioned(
-            bottom: 100,
-            right: 10,
+            bottom: 94,
+            left: 10,
             child: Visibility(
               // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
@@ -249,7 +250,7 @@ class _MapPageState extends ConsumerState<MapPage> {
             ),
           ),
           Positioned(
-            top: 10,
+            top: 30,
             left: 10,
             child: Container(
               padding: const EdgeInsets.all(8),
@@ -281,7 +282,7 @@ class _MapPageState extends ConsumerState<MapPage> {
             ),
           ),
           Positioned(
-            bottom: 160,
+            bottom: 94,
             right: 10,
             child: Visibility(
               // Hide when EventsScreen is visible
@@ -295,7 +296,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
           // Add a floating action button to show the EventsScreen
           Positioned(
-            bottom: 220,
+            bottom: 162,
             right: 10,
             child: Visibility(
               // Hide when EventsScreen is visible

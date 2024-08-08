@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_xploverse/features/home/presentation/navigator/booked_provider.dart';
-import 'package:flutter_xploverse/features/home/presentation/navigator/events_provider.dart';
+import 'package:flutter_xploverse/features/event/presentation/navigator/booked_provider.dart';
+import 'package:flutter_xploverse/features/event/presentation/navigator/events_provider.dart';
 import 'package:intl/intl.dart';
 
 class EventsScreen extends ConsumerWidget {

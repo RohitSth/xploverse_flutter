@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_xploverse/features/home/presentation/navigator/booked_provider.dart';
+import 'package:flutter_xploverse/features/event/presentation/navigator/booked_provider.dart';
 
 class TicketsScreen extends ConsumerStatefulWidget {
   const TicketsScreen({super.key});

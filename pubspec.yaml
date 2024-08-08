@@ -50,6 +50,10 @@ dependencies:
   riverpod_annotation: ^2.3.5
   sensors_plus: ^6.0.0
   hive_flutter: ^1.1.0
+  dio: ^5.5.0+1
+  get_it: ^7.7.0
+  skeletonizer: ^1.4.2
+  shared_preferences: ^2.3.1
 
 dev_dependencies:
   flutter_test:
