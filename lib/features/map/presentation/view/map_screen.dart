@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -21,6 +22,9 @@ class _MapPageState extends ConsumerState<MapPage> {
   late String currentLayer;
   LatLng? userLocation;
   bool _showEventsScreen = false;
+
+  List<LatLng> eventLatLngs = [];
+  StreamSubscription<QuerySnapshot>? eventSubscription;
 
   final Map<String, TileLayer> layers = {
     'Default': TileLayer(
@@ -45,6 +49,13 @@ class _MapPageState extends ConsumerState<MapPage> {
     super.initState();
     currentLayer = 'Default';
     _getCurrentLocation();
+    _listenToEventLocations(); // Set up real-time listener for event locations
+  }
+
+  @override
+  void dispose() {
+    eventSubscription?.cancel(); // Cancel subscription to avoid memory leaks
+    super.dispose();
   }
 
   String locationMessage = "Waiting for location...";
@@ -64,6 +75,33 @@ class _MapPageState extends ConsumerState<MapPage> {
         locationMessage = "Error getting location: $e";
       });
     }
+  }
+
+  void _listenToEventLocations() {
+    eventSubscription = FirebaseFirestore.instance
+        .collection('events')
+        .snapshots()
+        .listen((QuerySnapshot querySnapshot) {
+      List<LatLng> latLngList = [];
+
+      for (var doc in querySnapshot.docs) {
+        double? latitude = doc['latitude'];
+        double? longitude = doc['longitude'];
+
+        if (latitude != null && longitude != null) {
+          latLngList.add(LatLng(latitude, longitude));
+        }
+      }
+
+      setState(() {
+        eventLatLngs = latLngList;
+      });
+    }, onError: (e) {
+      print('Error listening to event locations: $e');
+      setState(() {
+        locationMessage = "Error fetching events: $e";
+      });
+    });
   }
 
   void _liveLocation() {
@@ -114,7 +152,6 @@ class _MapPageState extends ConsumerState<MapPage> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final eventLatLngs = ref.watch(eventLatLngsProvider);
 
     layers['Default'] = TileLayer(
       urlTemplate: isDarkMode

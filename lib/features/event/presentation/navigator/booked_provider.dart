@@ -1,4 +1,4 @@
-import 'package:flutter_xploverse/features/event/presentation/viewmodel/event.dart';
+import 'package:flutter_xploverse/features/event/data/model/event.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'booked_provider.g.dart';
