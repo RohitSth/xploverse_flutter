@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_xploverse/features/event/presentation/navigator/events_provider.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/events_screen.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -24,6 +23,8 @@ class _MapPageState extends ConsumerState<MapPage> {
   bool _showEventsScreen = false;
 
   List<LatLng> eventLatLngs = [];
+  Map<LatLng, String> eventNames =
+      {}; // Map to store event names by their location
   StreamSubscription<QuerySnapshot>? eventSubscription;
 
   final Map<String, TileLayer> layers = {
@@ -83,18 +84,25 @@ class _MapPageState extends ConsumerState<MapPage> {
         .snapshots()
         .listen((QuerySnapshot querySnapshot) {
       List<LatLng> latLngList = [];
+      Map<LatLng, String> nameMap = {};
 
       for (var doc in querySnapshot.docs) {
         double? latitude = doc['latitude'];
         double? longitude = doc['longitude'];
+        String? title = doc['title'];
 
         if (latitude != null && longitude != null) {
-          latLngList.add(LatLng(latitude, longitude));
+          LatLng latLng = LatLng(latitude, longitude);
+          latLngList.add(latLng);
+          if (title != null) {
+            nameMap[latLng] = title;
+          }
         }
       }
 
       setState(() {
         eventLatLngs = latLngList;
+        eventNames = nameMap;
       });
     }, onError: (e) {
       print('Error listening to event locations: $e');
@@ -149,6 +157,33 @@ class _MapPageState extends ConsumerState<MapPage> {
     });
   }
 
+  Future<void> _search(String query) async {
+    try {
+      final QuerySnapshot eventSnapshot = await FirebaseFirestore.instance
+          .collection('events')
+          .where('title', isEqualTo: query)
+          .get();
+
+      if (eventSnapshot.docs.isNotEmpty) {
+        final doc = eventSnapshot.docs.first;
+        final double? latitude = doc['latitude'];
+        final double? longitude = doc['longitude'];
+
+        if (latitude != null && longitude != null) {
+          // Instead of updating userLocation, directly move the map
+          final searchResultLocation = LatLng(latitude, longitude);
+          mapController.move(searchResultLocation, 15.0);
+        } else {
+          print('No events found with the given title.');
+        }
+      } else {
+        print('No events found with the given title.');
+      }
+    } catch (e) {
+      print('Error during search: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -169,6 +204,8 @@ class _MapPageState extends ConsumerState<MapPage> {
             options: const MapOptions(
               initialCenter: LatLng(40.7128, -74.0060), // New York City
               initialZoom: 15.0,
+              maxZoom: 30.0, // Limit zoom out
+              minZoom: 5.0,
               interactionOptions: InteractionOptions(
                 flags: InteractiveFlag.all,
               ),
@@ -193,14 +230,51 @@ class _MapPageState extends ConsumerState<MapPage> {
                   ...eventLatLngs.map(
                     (eventLatLng) => Marker(
                       point: eventLatLng,
-                      width: 40,
-                      height: 40,
-                      child: GestureDetector(
-                        onTap: _showEventsPopUp,
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Colors.red,
-                          size: 40,
+                      width: 100,
+                      height: 100,
+                      child: SizedBox(
+                        height: 120,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: Colors.grey.shade300, width: 1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.15),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                eventNames[eventLatLng] ?? '',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            GestureDetector(
+                              onTap: _showEventsPopUp,
+                              child: const Icon(
+                                Icons.location_on,
+                                color: Colors.red,
+                                size: 40,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -208,6 +282,39 @@ class _MapPageState extends ConsumerState<MapPage> {
                 ],
               ),
             ],
+          ),
+          // Search Bar
+          Positioned(
+            top: 30,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.black : Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.3),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'Search for locations or events',
+                    border: InputBorder.none,
+                  ),
+                  onSubmitted: (value) {
+                    _search(value);
+                  },
+                ),
+              ),
+            ),
           ),
           // EventsScreen Container
           if (_showEventsScreen)
@@ -255,6 +362,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                 ),
               ),
             ),
+          // Layers
           Positioned(
             bottom: 94,
             left: 10,
@@ -286,8 +394,9 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
           ),
+          // Live location info
           Positioned(
-            top: 30,
+            top: 90,
             left: 10,
             child: Container(
               padding: const EdgeInsets.all(8),
@@ -318,6 +427,7 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
           ),
+          // Current Location
           Positioned(
             bottom: 94,
             right: 10,
@@ -331,6 +441,7 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
           ),
+          // Show Events
           // Add a floating action button to show the EventsScreen
           Positioned(
             bottom: 162,
@@ -348,31 +459,5 @@ class _MapPageState extends ConsumerState<MapPage> {
         ],
       ),
     );
-  }
-
-  IconData getLayerIcon(String layer) {
-    switch (layer) {
-      case 'Default':
-        return Icons.map_outlined;
-      case 'OpenStreetMap':
-        return Icons.public;
-      case 'Esri World Imagery':
-        return Icons.photo_camera;
-      default:
-        return Icons.layers;
-    }
-  }
-
-  String getAttribution() {
-    switch (currentLayer) {
-      case 'Default':
-        return '© OpenStreetMap contributors, © CARTO';
-      case 'OpenStreetMap':
-        return '© OpenStreetMap contributors';
-      case 'Esri World Imagery':
-        return 'Tiles © Esri';
-      default:
-        return '© OpenStreetMap contributors';
-    }
   }
 }

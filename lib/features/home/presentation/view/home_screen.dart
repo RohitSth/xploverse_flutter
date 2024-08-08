@@ -92,7 +92,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             //   ),
             // ),
             Positioned(
-              top: 20,
+              top: 26,
               right: 10,
               child: UserProfileDropdown(
                 toggleTheme: _toggleTheme,
