@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,6 +16,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final CollectionReference allUsers =
       FirebaseFirestore.instance.collection('users');
   final User? user = FirebaseAuth.instance.currentUser;
+
+  final ImagePicker _imagePicker = ImagePicker();
+  String? imageUrl;
+
+  bool get isGoogleSignIn =>
+      user?.providerData
+          .any((userInfo) => userInfo.providerId == 'google.com') ??
+      false;
+
+  Future<void> pickImage() async {
+    if (isGoogleSignIn) return; // Don't allow Google users to change picture
+
+    try {
+      final XFile? pickedFile =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        await uploadImageToFirebase(File(pickedFile.path));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text("Failed to pick image: $e"),
+        ),
+      );
+    }
+  }
+
+  Future<void> uploadImageToFirebase(File image) async {
+    try {
+      Reference reference = FirebaseStorage.instance
+          .ref()
+          .child("images/${DateTime.now().microsecondsSinceEpoch}.png");
+
+      await reference.putFile(image).whenComplete(() async {
+        String downloadUrl = await reference.getDownloadURL();
+        await allUsers
+            .doc(user?.uid)
+            .update({'profilePictureUrl': downloadUrl});
+        setState(() {
+          imageUrl = downloadUrl;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+            content: Text("Upload Successful!"),
+          ),
+        );
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text("Failed to upload image: $e"),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +101,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           var userData = snapshot.data!.data() as Map<String, dynamic>;
-          String? profilePictureUrl =
-              user?.photoURL ?? userData['profilePictureUrl'];
+          String? profilePictureUrl = isGoogleSignIn
+              ? user?.photoURL
+              : (imageUrl ?? userData['profilePictureUrl'] ?? user?.photoURL);
           bool isOrganizer = userData['usertype'] == 'Organizer';
 
           return SingleChildScrollView(
@@ -56,10 +119,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 40),
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundImage: NetworkImage(profilePictureUrl ??
-                            'https://example.com/default-avatar.png'),
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          CircleAvatar(
+                            radius: 60,
+                            backgroundImage: profilePictureUrl != null
+                                ? NetworkImage(profilePictureUrl)
+                                : null,
+                            child: profilePictureUrl == null
+                                ? const Icon(Icons.person,
+                                    size: 100, color: Colors.grey)
+                                : null,
+                          ),
+                          if (!isGoogleSignIn)
+                            GestureDetector(
+                              onTap: pickImage,
+                              child: CircleAvatar(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 10, 123, 158),
+                                radius: 20,
+                                child: Icon(
+                                  Icons.edit,
+                                  size: 20,
+                                  color:
+                                      isDarkMode ? Colors.white : Colors.black,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 20),
                       Text(
@@ -171,8 +259,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         TextEditingController(text: userData['bio'] ?? '');
     final TextEditingController phoneController =
         TextEditingController(text: userData['phone'] ?? '');
-    final TextEditingController profilePictureController =
-        TextEditingController(text: userData['profilePictureUrl'] ?? '');
 
     bool isOrganizer = userData['usertype'] == 'Organizer';
     bool isGoogleSignIn = user?.providerData
@@ -192,18 +278,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Show profile picture field if not signed in with Google
-                if (!isGoogleSignIn)
-                  TextField(
-                    controller: profilePictureController,
-                    decoration: InputDecoration(
-                      labelText: 'Profile Picture URL',
-                      labelStyle: TextStyle(
-                          color: isDarkMode ? Colors.white70 : Colors.black54),
-                    ),
-                    style: TextStyle(
-                        color: isDarkMode ? Colors.white : Colors.black),
-                  ),
                 TextField(
                   controller: bioController,
                   decoration: InputDecoration(
@@ -241,12 +315,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Map<String, dynamic> updateData = {
                     'bio': bioController.text.trim(),
                   };
-
-                  // Include profile picture URL if not signed in with Google
-                  if (!isGoogleSignIn) {
-                    updateData['profilePictureUrl'] =
-                        profilePictureController.text.trim();
-                  }
 
                   if (isOrganizer) {
                     updateData['phone'] = phoneController.text.trim();

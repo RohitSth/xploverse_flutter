@@ -102,7 +102,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final List<Widget> _children = [
               const MapPage(),
               const EventsScreen(),
-              const TicketsScreen(),
+              if (userType != 'Organizer') const TicketsScreen(),
               if (userType == 'Organizer') const EventsManagement(),
               const ProfileScreen(),
             ];
@@ -110,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final List<IconData> listOfIcons = [
               Icons.map,
               Icons.event,
-              Icons.bookmark,
+              if (userType != 'Organizer') Icons.bookmark,
               if (userType == 'Organizer') Icons.energy_savings_leaf_outlined,
               Icons.person_rounded,
             ];
@@ -274,36 +274,66 @@ class UserProfileDropdown extends ConsumerWidget {
       error: (_, __) => const Icon(Icons.error),
       data: (user) {
         if (user == null) return Container();
-        return PopupMenuButton<String>(
-          icon: CircleAvatar(
-            radius: 20,
-            backgroundColor: const Color.fromARGB(255, 10, 123, 158),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage(user.photoURL ?? ''),
-            ),
-          ),
-          onSelected: (String value) async {
-            if (value == 'Logout') {
-              await AuthServices().signOut();
-            } else if (value == 'Toggle Theme') {
-              toggleTheme();
-            }
-          },
-          itemBuilder: (BuildContext context) {
-            return [
-              PopupMenuItem<String>(
-                value: 'Toggle Theme',
-                child: Text(isDarkMode ? 'Light Mode' : 'Dark Mode'),
+        return FutureBuilder<String?>(
+          future: _getProfilePicture(user),
+          builder: (context, snapshot) {
+            final profilePicUrl = snapshot.data;
+            return PopupMenuButton<String>(
+              icon: CircleAvatar(
+                radius: 20,
+                backgroundColor: const Color.fromARGB(255, 10, 123, 158),
+                child: profilePicUrl != null
+                    ? CircleAvatar(
+                        radius: 18,
+                        backgroundImage: NetworkImage(profilePicUrl),
+                      )
+                    : const Icon(Icons.person, color: Colors.white),
               ),
-              const PopupMenuItem<String>(
-                value: 'Logout',
-                child: Text('Logout', style: TextStyle(color: Colors.red)),
-              ),
-            ];
+              onSelected: (String value) async {
+                if (value == 'Logout') {
+                  await AuthServices().signOut();
+                } else if (value == 'Toggle Theme') {
+                  toggleTheme();
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem<String>(
+                    value: 'Toggle Theme',
+                    child: Text(isDarkMode ? 'Light Mode' : 'Dark Mode'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'Logout',
+                    child: Text('Logout', style: TextStyle(color: Colors.red)),
+                  ),
+                ];
+              },
+            );
           },
         );
       },
     );
+  }
+
+  Future<String?> _getProfilePicture(User user) async {
+    // Check if user is signed in with Google
+    final isGoogleSignIn = user.providerData
+        .any((userInfo) => userInfo.providerId == 'google.com');
+
+    if (isGoogleSignIn && user.photoURL != null) {
+      return user.photoURL;
+    }
+
+    // If not Google sign-in, fetch from Firestore
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      return userDoc.data()?['profilePictureUrl'] as String?;
+    } catch (e) {
+      print('Error fetching profile picture: $e');
+      return null;
+    }
   }
 }
