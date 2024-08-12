@@ -479,25 +479,29 @@ class _MapPageState extends ConsumerState<MapPage> {
           Positioned(
             bottom: 228.0,
             right: 10.0,
-            child: Column(
-              children: [
-                if (_showCancelRouteButton)
-                  FloatingActionButton(
-                    onPressed: _cancelRoute,
-                    backgroundColor: isDarkMode
-                        ? const Color.fromARGB(100, 10, 123, 158)
-                        : const Color.fromARGB(98, 105, 219, 253),
-                    child: const Icon(
-                      Icons.cancel_rounded,
-                      color: Colors.red,
+            child: Visibility(
+              // Hide when EventsScreen is visible
+              visible: !_showEventsScreen,
+              child: Column(
+                children: [
+                  if (_showCancelRouteButton)
+                    FloatingActionButton(
+                      onPressed: _cancelRoute,
+                      backgroundColor: isDarkMode
+                          ? const Color.fromARGB(100, 10, 123, 158)
+                          : const Color.fromARGB(98, 105, 219, 253),
+                      child: const Icon(
+                        Icons.cancel_rounded,
+                        color: Colors.red,
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
           // Layers
           Positioned(
-            bottom: 94,
+            bottom: 96,
             left: 10,
             child: Visibility(
               // Hide when EventsScreen is visible
@@ -564,7 +568,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
           // Current Location
           Positioned(
-            bottom: 94,
+            bottom: 96,
             right: 10,
             child: Visibility(
               // Hide when EventsScreen is visible
