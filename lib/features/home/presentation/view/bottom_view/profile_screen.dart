@@ -25,6 +25,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .any((userInfo) => userInfo.providerId == 'google.com') ??
       false;
 
+  bool isLoading = false;
+
   Future<void> pickImage() async {
     if (isGoogleSignIn) return; // Don't allow Google users to change picture
 
@@ -45,6 +47,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> uploadImageToFirebase(File image) async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       Reference reference = FirebaseStorage.instance
           .ref()
@@ -74,6 +79,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
     }
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -132,18 +140,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     size: 100, color: Colors.grey)
                                 : null,
                           ),
+                          if (isLoading)
+                            Positioned.fill(
+                              child: Center(
+                                child: Container(
+                                  width:
+                                      120, // width and height should match the CircleAvatar
+                                  height:
+                                      120, // radius to create the same size as CircleAvatar
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
                           if (!isGoogleSignIn)
-                            GestureDetector(
-                              onTap: pickImage,
-                              child: CircleAvatar(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 10, 123, 158),
-                                radius: 20,
-                                child: Icon(
-                                  Icons.edit,
-                                  size: 20,
-                                  color:
-                                      isDarkMode ? Colors.white : Colors.black,
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: pickImage,
+                                child: CircleAvatar(
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 10, 123, 158),
+                                  radius: 20,
+                                  child: Icon(
+                                    Icons.edit,
+                                    size: 20,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
                                 ),
                               ),
                             ),
