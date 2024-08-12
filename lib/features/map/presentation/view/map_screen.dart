@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_xploverse/features/map/domain/use_case/route_api.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/event_screen.dart';
@@ -47,15 +50,32 @@ class _MapPageState extends ConsumerState<MapPage> {
     ),
   };
 
-  Future<void> _getRoute(LatLng eventLatLng) async {
-    try {
-      // Example: Fetch route using OpenRouteService API
-      // This is a mocked route for demonstration purposes
-      List<LatLng> routePoints = [userLocation!, eventLatLng];
+  List listOfPoints = [];
+  List<LatLng> routePoints = [];
 
-      setState(() {
-        _routePoints = routePoints;
-      });
+  Future<void> _getRoute(LatLng eventLatLng) async {
+    if (userLocation == null) return; // Ensure userLocation is available
+
+    try {
+      final String userCoords =
+          '${userLocation!.longitude},${userLocation!.latitude}';
+      final String eventCoords =
+          '${eventLatLng.longitude},${eventLatLng.latitude}';
+
+      final response = await http.get(getRouteUrl(userCoords, eventCoords));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> coordinates =
+            data['features'][0]['geometry']['coordinates'];
+        setState(() {
+          _routePoints = coordinates
+              .map((coord) => LatLng(coord[1].toDouble(), coord[0].toDouble()))
+              .toList();
+        });
+      } else {
+        print('Failed to fetch route: ${response.statusCode}');
+      }
     } catch (e) {
       print('Error fetching route: $e');
     }
