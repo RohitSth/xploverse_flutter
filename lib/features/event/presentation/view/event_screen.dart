@@ -78,24 +78,6 @@ class EventsScreen extends ConsumerWidget {
                           color: isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Price: \$${eventData['ticketPrice'] ?? 'N/A'}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDarkMode ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        eventData['description'] ?? '',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDarkMode ? Colors.white : Colors.black,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                     ],
                   ),
                 ),
@@ -157,6 +139,53 @@ class EventsScreen extends ConsumerWidget {
                   style: TextStyle(
                     color: isDarkMode ? Colors.white : Colors.black,
                   ),
+                ),
+                const SizedBox(height: 16),
+                FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(eventData['organizerId'])
+                      .get(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<DocumentSnapshot> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    }
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+                    if (!snapshot.hasData || !snapshot.data!.exists) {
+                      return Text('Organizer information not available');
+                    }
+
+                    Map<String, dynamic> organizerData =
+                        snapshot.data!.data() as Map<String, dynamic>;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Organizer:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Organization: ${organizerData['organization'] ?? 'N/A'}',
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        Text(
+                          'Phone: ${organizerData['phone'] ?? 'N/A'}',
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),

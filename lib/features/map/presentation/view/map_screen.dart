@@ -313,7 +313,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                 ),
                 child: TextField(
                   decoration: const InputDecoration(
-                    hintText: 'Search for locations or events',
+                    hintText: 'Search events...',
                     border: InputBorder.none,
                   ),
                   onSubmitted: (value) {
