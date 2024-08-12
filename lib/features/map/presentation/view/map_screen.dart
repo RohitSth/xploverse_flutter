@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/event_screen.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});
@@ -44,15 +45,27 @@ class _MapPageState extends ConsumerState<MapPage> {
           "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
       subdomains: const ['a', 'b', 'c'],
       userAgentPackageName: 'com.example.xploverse',
+      tileProvider: NetworkTileProvider(),
+      maxZoom: 20,
+      maxNativeZoom: 18,
+      keepBuffer: 10,
     ),
     'OpenStreetMap': TileLayer(
       urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       userAgentPackageName: 'com.example.xploverse',
+      tileProvider: NetworkTileProvider(),
+      maxZoom: 20,
+      maxNativeZoom: 18,
+      keepBuffer: 10,
     ),
     'Esri World Imagery': TileLayer(
       urlTemplate:
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       userAgentPackageName: 'com.example.xploverse',
+      tileProvider: NetworkTileProvider(),
+      maxZoom: 20,
+      maxNativeZoom: 18,
+      keepBuffer: 10,
     ),
   };
 
@@ -281,6 +294,10 @@ class _MapPageState extends ConsumerState<MapPage> {
           : "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
       subdomains: const ['a', 'b', 'c'],
       userAgentPackageName: 'com.example.xploverse',
+      tileProvider: NetworkTileProvider(),
+      maxZoom: 20,
+      maxNativeZoom: 18,
+      keepBuffer: 10,
     );
 
     return Scaffold(
@@ -290,9 +307,8 @@ class _MapPageState extends ConsumerState<MapPage> {
             mapController: mapController,
             options: const MapOptions(
               initialCenter: LatLng(40.7128, -74.0060), // New York City
-              initialZoom: 15.0,
-              maxZoom: 30.0, // Limit zoom out
-              minZoom: 5.0,
+              initialZoom: 15.0, // Limit zoom out
+              minZoom: 9.0,
               interactionOptions: InteractionOptions(
                 flags: InteractiveFlag.all,
               ),
