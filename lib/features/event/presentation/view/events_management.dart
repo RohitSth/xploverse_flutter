@@ -89,6 +89,18 @@ class _EventsManagementState extends State<EventsManagement> {
       return;
     }
 
+    // Check if the user is an organizer
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_organizerUid)
+        .get();
+    if (userDoc.exists && userDoc.get('usertype') != 'Organizer') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Only organizers can create events')),
+      );
+      return;
+    }
+
     try {
       QuerySnapshot snapshot =
           await allEvents.where('title', isEqualTo: titleController.text).get();
@@ -100,7 +112,8 @@ class _EventsManagementState extends State<EventsManagement> {
         return;
       }
 
-      await allEvents.add(_getEventData());
+      Map<String, dynamic> eventData = await _getEventData();
+      await allEvents.add(eventData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Event created successfully')),
@@ -117,7 +130,8 @@ class _EventsManagementState extends State<EventsManagement> {
 
   Future<void> _updateEvent(String eventId) async {
     try {
-      await allEvents.doc(eventId).update(_getEventData());
+      Map<String, dynamic> eventData = await _getEventData();
+      await allEvents.doc(eventId).update(eventData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Event updated successfully')),
@@ -284,7 +298,15 @@ class _EventsManagementState extends State<EventsManagement> {
                   documentSnapshot['title'],
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text(documentSnapshot['description']),
+                // subtitle: Column(
+                //   crossAxisAlignment: CrossAxisAlignment.start,
+                //   children: [
+                //     Text(documentSnapshot['description']),
+                //     Text(
+                //         'Organization: ${documentSnapshot['organizerOrganization']}'),
+                //     Text('Contact: ${documentSnapshot['organizerPhone']}'),
+                //   ],
+                // ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

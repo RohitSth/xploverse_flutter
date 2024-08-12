@@ -81,6 +81,7 @@ class _MapPageState extends ConsumerState<MapPage> {
   void _listenToEventLocations() {
     eventSubscription = FirebaseFirestore.instance
         .collection('events')
+        .orderBy('startDate', descending: true)
         .snapshots()
         .listen((QuerySnapshot querySnapshot) {
       List<LatLng> latLngList = [];
@@ -90,12 +91,18 @@ class _MapPageState extends ConsumerState<MapPage> {
         double? latitude = doc['latitude'];
         double? longitude = doc['longitude'];
         String? title = doc['title'];
+        String? endDateString = doc['endDate'];
 
-        if (latitude != null && longitude != null) {
-          LatLng latLng = LatLng(latitude, longitude);
-          latLngList.add(latLng);
-          if (title != null) {
-            nameMap[latLng] = title;
+        if (latitude != null && longitude != null && endDateString != null) {
+          DateTime endDate = DateTime.parse(endDateString);
+
+          // Only include events that haven't ended yet
+          if (endDate.isAfter(DateTime.now())) {
+            LatLng latLng = LatLng(latitude, longitude);
+            latLngList.add(latLng);
+            if (title != null) {
+              nameMap[latLng] = title;
+            }
           }
         }
       }
@@ -319,7 +326,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           // EventsScreen Container
           if (_showEventsScreen)
             Positioned(
-              bottom: 100,
+              bottom: 0,
               left: 0,
               right: 0,
               child: GestureDetector(
