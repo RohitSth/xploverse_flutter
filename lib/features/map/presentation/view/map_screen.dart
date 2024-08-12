@@ -22,6 +22,8 @@ class _MapPageState extends ConsumerState<MapPage> {
   LatLng? userLocation;
   bool _showEventsScreen = false;
 
+  List<LatLng> _routePoints = [];
+
   List<LatLng> eventLatLngs = [];
   Map<LatLng, String> eventNames =
       {}; // Map to store event names by their location
@@ -44,6 +46,20 @@ class _MapPageState extends ConsumerState<MapPage> {
       userAgentPackageName: 'com.example.xploverse',
     ),
   };
+
+  Future<void> _getRoute(LatLng eventLatLng) async {
+    try {
+      // Example: Fetch route using OpenRouteService API
+      // This is a mocked route for demonstration purposes
+      List<LatLng> routePoints = [userLocation!, eventLatLng];
+
+      setState(() {
+        _routePoints = routePoints;
+      });
+    } catch (e) {
+      print('Error fetching route: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -239,55 +255,55 @@ class _MapPageState extends ConsumerState<MapPage> {
                       point: eventLatLng,
                       width: 100,
                       height: 100,
-                      child: SizedBox(
-                        height: 120,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 4, horizontal: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                    color: Colors.grey.shade300, width: 1),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Text(
-                                eventNames[eventLatLng] ?? '',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                      child: GestureDetector(
+                        onTap: () {
+                          _getRoute(
+                              eventLatLng); // Fetch and display route on click
+                        },
+                        child: SizedBox(
+                          height: 120,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 4, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.8),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                textAlign: TextAlign.center,
+                                child: Text(
+                                  eventNames[eventLatLng] ?? '',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            GestureDetector(
-                              onTap: _showEventsPopUp,
-                              child: const Icon(
+                              const Icon(
                                 Icons.location_on,
                                 color: Colors.red,
                                 size: 40,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ],
               ),
+              if (_routePoints.isNotEmpty)
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: _routePoints,
+                      strokeWidth: 4.0,
+                      color: Colors.blue,
+                    ),
+                  ],
+                ),
             ],
           ),
           // Search Bar
@@ -323,6 +339,7 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
           ),
+
           // EventsScreen Container
           if (_showEventsScreen)
             Positioned(
@@ -377,7 +394,9 @@ class _MapPageState extends ConsumerState<MapPage> {
               // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
               child: FloatingActionButton(
-                backgroundColor: const Color.fromARGB(100, 10, 123, 158),
+                backgroundColor: isDarkMode
+                    ? const Color.fromARGB(100, 10, 123, 158)
+                    : const Color.fromARGB(98, 105, 219, 253),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -442,7 +461,9 @@ class _MapPageState extends ConsumerState<MapPage> {
               // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
               child: FloatingActionButton(
-                backgroundColor: const Color.fromARGB(100, 10, 123, 158),
+                backgroundColor: isDarkMode
+                    ? const Color.fromARGB(100, 10, 123, 158)
+                    : const Color.fromARGB(98, 105, 219, 253),
                 onPressed: _moveToCurrentLocation,
                 child: const Icon(Icons.my_location),
               ),
@@ -457,7 +478,9 @@ class _MapPageState extends ConsumerState<MapPage> {
               // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
               child: FloatingActionButton(
-                backgroundColor: const Color.fromARGB(100, 10, 123, 158),
+                backgroundColor: isDarkMode
+                    ? const Color.fromARGB(100, 10, 123, 158)
+                    : const Color.fromARGB(98, 105, 219, 253),
                 onPressed: _handleEventsPopUp,
                 child: const Icon(Icons.event),
               ),

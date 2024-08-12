@@ -12,32 +12,99 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final CollectionReference allUsers =
       FirebaseFirestore.instance.collection('users');
+  final User? user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: StreamBuilder(
-        stream: allUsers.snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-          if (streamSnapshot.hasData) {
-            return ListView.builder(
-              itemCount: streamSnapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                final DocumentSnapshot documentSnapshot =
-                    streamSnapshot.data!.docs[index];
-                return Material(
-                  child: ListTile(
-                    title: Text(
-                      documentSnapshot['username'],
-                      style: TextStyle(fontWeight: FontWeight.bold),
+        stream: allUsers.doc(user?.uid).snapshots(),
+        builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          if (snapshot.hasData) {
+            var userData = snapshot.data;
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 50),
+                  // CircleAvatar(
+                  //   radius: 60,
+                  //   backgroundImage: NetworkImage(userData![
+                  //           'profilePictureUrl'] ??
+                  //       'https://example.com/default-avatar.png'), // Replace with a default image URL
+                  // ),
+                  const SizedBox(height: 20),
+                  Text(
+                    userData?['username'],
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    subtitle: Text(documentSnapshot['usertype']),
                   ),
-                );
-              },
+                  const SizedBox(height: 10),
+                  Text(
+                    userData?['usertype'],
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Card(
+                    color: Colors.grey[900],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Email:',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            userData?['email'],
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // const Text(
+                          //   'Bio:',
+                          //   style: TextStyle(
+                          //     fontSize: 16,
+                          //     color: Colors.blueAccent,
+                          //   ),
+                          // ),
+                          // const SizedBox(height: 5),
+                          // Text(
+                          //   userData?['bio'] ?? 'No bio available',
+                          //   style: const TextStyle(
+                          //     fontSize: 16,
+                          //     color: Colors.white,
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           }
-          return const Center();
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         },
       ),
     );
