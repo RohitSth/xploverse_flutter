@@ -475,15 +475,15 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
 
+          // Cancel Route Button
           Positioned(
-            top: 90.0,
+            bottom: 228.0,
             right: 10.0,
             child: Column(
               children: [
                 if (_showCancelRouteButton)
                   FloatingActionButton(
                     onPressed: _cancelRoute,
-                    mini: true,
                     backgroundColor: isDarkMode
                         ? const Color.fromARGB(100, 10, 123, 158)
                         : const Color.fromARGB(98, 105, 219, 253),
