@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_xploverse/features/map/domain/use_case/route_api.dart';
@@ -24,6 +26,10 @@ class _MapPageState extends ConsumerState<MapPage> {
   late String currentLayer;
   LatLng? userLocation;
   bool _showEventsScreen = false;
+  bool _showCancelRouteButton = false;
+  LatLng? _selectedEventLatLng;
+
+  String? userProfilePictureUrl;
 
   List<LatLng> _routePoints = [];
 
@@ -72,6 +78,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           _routePoints = coordinates
               .map((coord) => LatLng(coord[1].toDouble(), coord[0].toDouble()))
               .toList();
+          _showCancelRouteButton = true; // Show the cancel route button
         });
       } else {
         print('Failed to fetch route: ${response.statusCode}');
@@ -81,12 +88,40 @@ class _MapPageState extends ConsumerState<MapPage> {
     }
   }
 
+  void _recalculateRoute() {
+    if (_selectedEventLatLng != null) {
+      _getRoute(_selectedEventLatLng!);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     currentLayer = 'Default';
     _getCurrentLocation();
     _listenToEventLocations(); // Set up real-time listener for event locations
+    _getUserProfilePicture();
+  }
+
+  Future<void> _getUserProfilePicture() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    print('Current user: ${user?.uid}');
+    if (user != null) {
+      try {
+        final userData = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        print('User data: ${userData.data()}');
+        setState(() {
+          userProfilePictureUrl =
+              userData.data()?['profilePictureUrl'] ?? user.photoURL;
+        });
+        print('User profile picture URL: $userProfilePictureUrl');
+      } catch (e) {
+        print('Error fetching user data: $e');
+      }
+    }
   }
 
   @override
@@ -171,8 +206,9 @@ class _MapPageState extends ConsumerState<MapPage> {
         userLocation = LatLng(position.latitude, position.longitude);
         locationMessage =
             'Live location active: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+        // Trigger route recalculation when user location changes
+        _recalculateRoute();
       });
-      _moveToCurrentLocation();
     });
   }
 
@@ -227,6 +263,14 @@ class _MapPageState extends ConsumerState<MapPage> {
     }
   }
 
+  void _cancelRoute() {
+    setState(() {
+      _routePoints.clear();
+      _showCancelRouteButton = false; // Hide the cancel route button
+      _selectedEventLatLng = null; // Clear the selected event
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -260,14 +304,37 @@ class _MapPageState extends ConsumerState<MapPage> {
                   if (userLocation != null)
                     Marker(
                       point: userLocation!,
-                      width: 20,
-                      height: 20,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.7),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
+                      width: 50,
+                      height: 60,
+                      child: Stack(
+                        alignment: Alignment.topCenter,
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: Color.fromARGB(136, 0, 204, 255),
+                                  width: 2),
+                            ),
+                            child: ClipOval(
+                              child: userProfilePictureUrl != null &&
+                                      userProfilePictureUrl!.isNotEmpty
+                                  ? Image.network(
+                                      userProfilePictureUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        print('Error loading image: $error');
+                                        return const Icon(Icons.person,
+                                            size: 20);
+                                      },
+                                    )
+                                  : const Icon(Icons.person, size: 20),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ...eventLatLngs.map(
@@ -277,6 +344,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                       height: 100,
                       child: GestureDetector(
                         onTap: () {
+                          _selectedEventLatLng = eventLatLng;
                           _getRoute(
                               eventLatLng); // Fetch and display route on click
                         },
@@ -406,6 +474,27 @@ class _MapPageState extends ConsumerState<MapPage> {
                 ),
               ),
             ),
+
+          Positioned(
+            top: 90.0,
+            right: 10.0,
+            child: Column(
+              children: [
+                if (_showCancelRouteButton)
+                  FloatingActionButton(
+                    onPressed: _cancelRoute,
+                    mini: true,
+                    backgroundColor: isDarkMode
+                        ? const Color.fromARGB(100, 10, 123, 158)
+                        : const Color.fromARGB(98, 105, 219, 253),
+                    child: const Icon(
+                      Icons.cancel_rounded,
+                      color: Colors.red,
+                    ),
+                  ),
+              ],
+            ),
+          ),
           // Layers
           Positioned(
             bottom: 94,
