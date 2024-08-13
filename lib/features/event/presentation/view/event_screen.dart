@@ -13,8 +13,7 @@ class EventsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Upcoming Events'),
-        centerTitle: true,
+        title: const Text('UPCOMMING EVENTS'),
         elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
