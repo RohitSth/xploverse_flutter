@@ -9,7 +9,7 @@ import 'package:flutter_xploverse/features/event/presentation/navigator/booked_p
 import 'package:flutter_xploverse/features/auth/presentation/view/login.dart';
 import 'package:flutter_xploverse/features/auth/presentation/viewmodel/authentication.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/events_management.dart';
-import 'package:flutter_xploverse/features/event/presentation/view/events_screen.dart';
+import 'package:flutter_xploverse/features/event/presentation/view/event_screen.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/tickets_view/tickets_screen.dart';
 import 'package:flutter_xploverse/features/home/presentation/view/bottom_view/fade_page_route.dart';
 import 'package:flutter_xploverse/features/home/presentation/view/bottom_view/profile_screen.dart';

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +12,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/event_screen.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter_compass/flutter_compass.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});
@@ -37,6 +35,8 @@ class _MapPageState extends ConsumerState<MapPage> {
   List<LatLng> eventLatLngs = [];
   Map<LatLng, String> eventNames =
       {}; // Map to store event names by their location
+  List<Map<String, dynamic>> nearbyEvents = []; //For List of nearby events
+
   StreamSubscription<QuerySnapshot>? eventSubscription;
 
   final Map<String, TileLayer> layers = {
@@ -107,6 +107,32 @@ class _MapPageState extends ConsumerState<MapPage> {
     }
   }
 
+  // Method to calculate nearby events
+  void _calculateNearbyEvents() {
+    if (userLocation == null) return;
+
+    const double maxDistance = 10.0; // Maximum distance in kilometers
+
+    nearbyEvents = eventLatLngs.where((eventLatLng) {
+      double distance = Geolocator.distanceBetween(
+            userLocation!.latitude,
+            userLocation!.longitude,
+            eventLatLng.latitude,
+            eventLatLng.longitude,
+          ) /
+          1000; // Convert meters to kilometers
+
+      return distance <= maxDistance;
+    }).map((eventLatLng) {
+      return {
+        'latLng': eventLatLng,
+        'name': eventNames[eventLatLng] ?? 'Unknown Event',
+      };
+    }).toList();
+
+    setState(() {}); // Trigger a rebuild to show the updated nearby events
+  }
+
   @override
   void initState() {
     super.initState();
@@ -160,6 +186,7 @@ class _MapPageState extends ConsumerState<MapPage> {
         locationMessage = "Error getting location: $e";
       });
     }
+    _calculateNearbyEvents();
   }
 
   void _listenToEventLocations() {
@@ -203,6 +230,107 @@ class _MapPageState extends ConsumerState<MapPage> {
     });
   }
 
+  void _showEventPopup(LatLng eventLatLng) async {
+    // Fetch event details from Firestore
+    final QuerySnapshot eventSnapshot = await FirebaseFirestore.instance
+        .collection('events')
+        .where('latitude', isEqualTo: eventLatLng.latitude)
+        .where('longitude', isEqualTo: eventLatLng.longitude)
+        .limit(1)
+        .get();
+
+    if (eventSnapshot.docs.isNotEmpty) {
+      final eventDoc = eventSnapshot.docs.first;
+      final eventData = eventDoc.data() as Map<String, dynamic>;
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(eventData['title'] ?? 'Event Details'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text('Description: ${eventData['description'] ?? 'N/A'}'),
+                  Text(
+                    'Date: ${_formatDate(eventData['startDate'])} - ${_formatDate(eventData['endDate'])}',
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Price: \$${eventData['ticketPrice'] ?? 'N/A'}',
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Description:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    eventData['description'] ?? '',
+                  ),
+                  const SizedBox(height: 16),
+                  FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(eventData['organizerId'])
+                        .get(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<DocumentSnapshot> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      }
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      }
+                      if (!snapshot.hasData || !snapshot.data!.exists) {
+                        return const Text(
+                            'Organizer information not available');
+                      }
+
+                      Map<String, dynamic> organizerData =
+                          snapshot.data!.data() as Map<String, dynamic>;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Organizer:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Organization: ${organizerData['organization'] ?? 'N/A'}',
+                          ),
+                          Text(
+                            'Phone: ${organizerData['phone'] ?? 'N/A'}',
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  // Add more event details as needed
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Close'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      print('Event not found');
+    }
+  }
+
   void _liveLocation() {
     LocationSettings locationSettings = const LocationSettings(
       accuracy: LocationAccuracy.high,
@@ -221,8 +349,23 @@ class _MapPageState extends ConsumerState<MapPage> {
             'Live location active: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
         // Trigger route recalculation when user location changes
         _recalculateRoute();
+        _calculateNearbyEvents();
       });
     });
+  }
+
+  // Method to calculate distance between user and event
+  double _calculateDistance(LatLng eventLatLng) {
+    if (userLocation == null)
+      return 0.0; // Handle cases where user location is unavailable
+
+    return Geolocator.distanceBetween(
+          userLocation!.latitude,
+          userLocation!.longitude,
+          eventLatLng.latitude,
+          eventLatLng.longitude,
+        ) /
+        1000; // Convert meters to kilometers
   }
 
   void _moveToCurrentLocation() {
@@ -331,7 +474,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                  color: Color.fromARGB(136, 0, 204, 255),
+                                  color: const Color.fromARGB(136, 0, 204, 255),
                                   width: 2),
                             ),
                             child: ClipOval(
@@ -356,42 +499,47 @@ class _MapPageState extends ConsumerState<MapPage> {
                   ...eventLatLngs.map(
                     (eventLatLng) => Marker(
                       point: eventLatLng,
-                      width: 100,
-                      height: 100,
+                      width: 150,
+                      height: 120,
                       child: GestureDetector(
                         onTap: () {
-                          _selectedEventLatLng = eventLatLng;
-                          _getRoute(
-                              eventLatLng); // Fetch and display route on click
+                          setState(() {
+                            _selectedEventLatLng = eventLatLng;
+                          });
+                          _getRoute(eventLatLng);
                         },
-                        child: SizedBox(
-                          height: 120,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 4, horizontal: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.8),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  eventNames[eventLatLng] ?? '',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                eventNames[eventLatLng] ?? '',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const Icon(
-                                Icons.location_on,
-                                color: Colors.red,
-                                size: 40,
+                            ),
+                            const Icon(
+                              Icons.location_on,
+                              color: Colors.red,
+                              size: 40,
+                            ),
+                            if (_selectedEventLatLng == eventLatLng)
+                              ElevatedButton(
+                                onPressed: () {
+                                  _showEventPopup(eventLatLng);
+                                },
+                                child: const Text('View More'),
                               ),
-                            ],
-                          ),
+                          ],
                         ),
                       ),
                     ),
@@ -452,38 +600,51 @@ class _MapPageState extends ConsumerState<MapPage> {
               right: 0,
               child: GestureDetector(
                 child: Container(
-                  height: MediaQuery.of(context).size.height *
-                      0.5, // Half screen height
+                  height: MediaQuery.of(context).size.height * 0.5,
                   width: MediaQuery.of(context).size.width * 0.5,
-                  decoration: const BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.all(Radius.circular(25)),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(25)),
                   ),
                   child: Column(
                     children: [
-                      // Close button (Red Circle)
-                      Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20),
-                            child: GestureDetector(
-                              onTap: _hideEventsPopUp,
-                              child: Container(
-                                width: 20,
-                                height: 20,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.red,
-                                ),
-                              ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Nearby Events',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                          ),
-                        ],
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: _hideEventsPopUp,
+                            ),
+                          ],
+                        ),
                       ),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: nearbyEvents.length,
+                          itemBuilder: (context, index) {
+                            final event = nearbyEvents[index];
+                            final eventLatLng = event['latLng'] as LatLng;
 
-                      // EventsScreen content
-                      const Expanded(
-                        child: EventsScreen(),
+                            // Calculate the distance here
+                            final distance = _calculateDistance(eventLatLng);
+                            return ListTile(
+                              title: Text(
+                                '${event['name']} (${distance.toStringAsFixed(1)} km)',
+                              ),
+                              onTap: () {
+                                _showEventPopup(event['latLng']);
+                              },
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -618,5 +779,11 @@ class _MapPageState extends ConsumerState<MapPage> {
         ],
       ),
     );
+  }
+
+  String _formatDate(String? dateString) {
+    if (dateString == null) return '';
+    final date = DateTime.parse(dateString);
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
