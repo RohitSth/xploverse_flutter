@@ -42,13 +42,15 @@ class EventsScreen extends ConsumerWidget {
           itemBuilder: (context, index) {
             final eventData =
                 filteredEvents[index].data() as Map<String, dynamic>;
+            final eventId = filteredEvents[index].id;
 
             return Card(
               elevation: 2,
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: InkWell(
                 onTap: () {
-                  _showEventDetailsPopup(context, eventData, isDarkMode);
+                  _showEventDetailsPopup(
+                      context, eventData, eventId, isDarkMode);
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -112,7 +114,8 @@ class EventsScreen extends ConsumerWidget {
     );
   }
 
-  void _bookEvent(BuildContext context, Map<String, dynamic> eventData) async {
+  void _bookEvent(BuildContext context, String eventId,
+      Map<String, dynamic> eventData) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -121,10 +124,21 @@ class EventsScreen extends ConsumerWidget {
       return;
     }
 
+    // Check if the maximum participants limit is exceeded
+    final maxParticipants = eventData['maxParticipants'] ?? 0;
+    final bookingCount = await _getBookingCount(eventId);
+
+    if (bookingCount >= maxParticipants) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event is fully booked')),
+      );
+      return;
+    }
+
     try {
       await FirebaseFirestore.instance.collection('bookings').add({
         'userId': user.uid,
-        'eventId': eventData['id'],
+        'eventId': eventId,
         'eventTitle': eventData['title'],
         'eventDate': eventData['startDate'],
         'bookingDate': FieldValue.serverTimestamp(),
@@ -141,8 +155,17 @@ class EventsScreen extends ConsumerWidget {
     }
   }
 
-  void _showEventDetailsPopup(
-      BuildContext context, Map<String, dynamic> eventData, bool isDarkMode) {
+  Future<int> _getBookingCount(String eventId) async {
+    final bookingCountSnapshot = await FirebaseFirestore.instance
+        .collection('bookings')
+        .where('eventId', isEqualTo: eventId)
+        .get();
+
+    return bookingCountSnapshot.docs.length;
+  }
+
+  void _showEventDetailsPopup(BuildContext context,
+      Map<String, dynamic> eventData, String eventId, bool isDarkMode) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -193,6 +216,43 @@ class EventsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+                Text(
+                  'Max Participants:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${eventData['maxParticipants'] ?? 0}',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                FutureBuilder<int>(
+                  future: _getBookingCount(eventId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text("");
+                    }
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+                    if (!snapshot.hasData) {
+                      return const Text('Booking count unavailable');
+                    }
+
+                    return Text(
+                      'Booked: ${snapshot.data}',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
                 FutureBuilder<DocumentSnapshot>(
                   future: FirebaseFirestore.instance
                       .collection('users')
@@ -201,13 +261,13 @@ class EventsScreen extends ConsumerWidget {
                   builder: (BuildContext context,
                       AsyncSnapshot<DocumentSnapshot> snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
+                      return const CircularProgressIndicator();
                     }
                     if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
                     }
                     if (!snapshot.hasData || !snapshot.data!.exists) {
-                      return Text('Organizer information not available');
+                      return const Text('Organizer information not available');
                     }
 
                     Map<String, dynamic> organizerData =
@@ -252,7 +312,7 @@ class EventsScreen extends ConsumerWidget {
             TextButton(
               child: const Text('Book Event'),
               onPressed: () {
-                _bookEvent(context, eventData);
+                _bookEvent(context, eventId, eventData);
               },
             ),
           ],
