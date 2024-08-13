@@ -559,7 +559,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
           // Search Bar
           Positioned(
-            top: 30,
+            top: 35,
             left: 0,
             right: 0,
             child: Padding(
@@ -572,9 +572,9 @@ class _MapPageState extends ConsumerState<MapPage> {
                   boxShadow: [
                     BoxShadow(
                       color: Colors.blue.withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
+                      spreadRadius: 1,
+                      blurRadius: 1,
+                      offset: const Offset(0, 1),
                     ),
                   ],
                 ),
