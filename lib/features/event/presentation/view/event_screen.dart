@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart'; // Add this import for date formatting
 
 class EventsScreen extends ConsumerWidget {
   const EventsScreen({Key? key}) : super(key: key);
@@ -10,136 +11,286 @@ class EventsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('events')
-          .orderBy('startDate', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const Center(child: Text('Error fetching events'));
-        }
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Upcoming Events'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('events')
+            .orderBy('startDate', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return _buildErrorWidget('Error fetching events');
+          }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        final events = snapshot.data!.docs;
+          final events = snapshot.data!.docs;
+          final filteredEvents = _filterEvents(events);
 
-        // Filter recent and upcoming events
-        final filteredEvents = events.where((event) {
-          final eventData = event.data() as Map<String, dynamic>;
-          final endDate = DateTime.parse(eventData['endDate']);
-          return endDate.isAfter(DateTime.now());
-        }).toList();
+          if (filteredEvents.isEmpty) {
+            return _buildErrorWidget('No upcoming events found');
+          }
 
-        if (filteredEvents.isEmpty) {
-          return const Center(child: Text('No upcoming events found'));
-        }
+          return ListView.builder(
+            itemCount: filteredEvents.length,
+            itemBuilder: (context, index) {
+              final eventData =
+                  filteredEvents[index].data() as Map<String, dynamic>;
+              final eventId = filteredEvents[index].id;
 
-        return ListView.builder(
-          itemCount: filteredEvents.length,
-          itemBuilder: (context, index) {
-            final eventData =
-                filteredEvents[index].data() as Map<String, dynamic>;
-            final eventId = filteredEvents[index].id;
+              return _buildEventCard(context, eventData, eventId, isDarkMode);
+            },
+          );
+        },
+      ),
+    );
+  }
 
-            return Card(
-              elevation: 2,
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: InkWell(
-                onTap: () {
-                  _showEventDetailsPopup(
-                      context, eventData, eventId, isDarkMode);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Image section
-                      if (eventData['images'] != null &&
-                          eventData['images'].isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 16.0),
-                          child: SizedBox(
-                            width: 80, // Adjust as needed
-                            height: 80, // Adjust as needed
-                            child: Image.network(
-                              eventData['images'][0],
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      // Title and other details
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              eventData['title'] ?? '',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: isDarkMode ? Colors.white : Colors.black,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${_formatDate(eventData['startDate'])} - ${_formatDate(eventData['endDate'])}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDarkMode ? Colors.white : Colors.black,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              eventData['address'] ?? '',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDarkMode ? Colors.white : Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Booking icon
-                      IconButton(
-                        onPressed: () {
-                          _bookEvent(context, eventId, eventData);
-                        },
-                        icon: const Icon(Icons.bookmark_add_outlined),
-                        color: Colors.blue,
-                      ),
-                    ],
-                  ),
+  Widget _buildErrorWidget(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 60, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<QueryDocumentSnapshot> _filterEvents(
+      List<QueryDocumentSnapshot> events) {
+    return events.where((event) {
+      final eventData = event.data() as Map<String, dynamic>;
+      final endDate = DateTime.parse(eventData['endDate']);
+      return endDate.isAfter(DateTime.now());
+    }).toList();
+  }
+
+  Widget _buildEventCard(BuildContext context, Map<String, dynamic> eventData,
+      String eventId, bool isDarkMode) {
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () =>
+            _showEventDetailsPopup(context, eventData, eventId, isDarkMode),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Event image
+            if (eventData['images'] != null && eventData['images'].isNotEmpty)
+              ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
+                child: Image.network(
+                  eventData['images'][0],
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
                 ),
               ),
-            );
-          },
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    eventData['title'] ?? '',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                      Icons.calendar_today,
+                      _formatDateRange(
+                          eventData['startDate'], eventData['endDate'])),
+                  const SizedBox(height: 4),
+                  _buildInfoRow(Icons.location_on, eventData['address'] ?? ''),
+                  const SizedBox(height: 4),
+                  _buildInfoRow(Icons.attach_money,
+                      '${eventData['ticketPrice'] ?? 'N/A'}'),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _showEventDetailsPopup(
+                        context, eventData, eventId, isDarkMode),
+                    icon: const Icon(Icons.info_outline),
+                    label: const Text('Details'),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => _bookEvent(context, eventId, eventData),
+                    icon: const Icon(Icons.bookmark_add_outlined),
+                    label: const Text('Book'),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEventDetailsPopup(BuildContext context,
+      Map<String, dynamic> eventData, String eventId, bool isDarkMode) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child:
+                          const Icon(Icons.close, color: Colors.red, size: 20),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  eventData['title'] ?? 'OKAEEE',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  eventData['subtitle'] ?? 'Nicee',
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                const SizedBox(height: 16),
+                _buildInfoRow(
+                    Icons.location_on, eventData['address'] ?? 'KTMsdljh'),
+                const SizedBox(height: 8),
+                _buildInfoRow(
+                    Icons.calendar_today,
+                    _formatDateRange(
+                        eventData['startDate'], eventData['endDate'])),
+                const SizedBox(height: 8),
+                _buildInfoRow(
+                    Icons.attach_money, '${eventData['ticketPrice'] ?? '2.0'}'),
+                const SizedBox(height: 8),
+                _buildInfoRow(Icons.people,
+                    '${eventData['maxParticipants'] ?? '20'} MAX'),
+                const SizedBox(height: 8),
+                _buildInfoRow(
+                    Icons.description, eventData['description'] ?? 'TEST'),
+                const SizedBox(height: 8),
+                _buildInfoRow(Icons.phone, eventData['phone'] ?? '9898989822'),
+                const SizedBox(height: 16),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      try {
+                        _bookEvent(context, eventId, eventData);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Event booked successfully!')),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to book event: $e')),
+                        );
+                      } finally {
+                        Navigator.of(context)
+                            .pop(); // Close the popup regardless of success/failure
+                      }
+                    },
+                    child: const Text('Book'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.blue, size: 20),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(dynamic date) {
+    if (date == null) return '';
+    if (date is Timestamp) {
+      return DateFormat('yyyy-MM-dd').format(date.toDate());
+    }
+    return date.toString();
   }
 
   void _bookEvent(BuildContext context, String eventId,
       Map<String, dynamic> eventData) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please log in to book an event')),
-      );
+      _showSnackBar(context, 'Please log in to book an event');
       return;
     }
 
-    // Check if the maximum participants limit is exceeded
     final maxParticipants = eventData['maxParticipants'] ?? 0;
     final bookingCount = await _getBookingCount(eventId);
 
     if (bookingCount >= maxParticipants) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Event is fully booked')),
-      );
+      _showSnackBar(context, 'Event is fully booked');
       return;
     }
 
@@ -151,15 +302,15 @@ class EventsScreen extends ConsumerWidget {
         'eventDate': eventData['startDate'],
         'bookingDate': FieldValue.serverTimestamp(),
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Event booked successfully')),
-      );
+      _showSnackBar(context, 'Event booked successfully');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error booking event: $e')),
-      );
+      _showSnackBar(context, 'Error booking event: $e');
     }
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<int> _getBookingCount(String eventId) async {
@@ -167,182 +318,14 @@ class EventsScreen extends ConsumerWidget {
         .collection('bookings')
         .where('eventId', isEqualTo: eventId)
         .get();
-
     return bookingCountSnapshot.docs.length;
   }
 
-  void _showEventDetailsPopup(BuildContext context,
-      Map<String, dynamic> eventData, String eventId, bool isDarkMode) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            eventData['title'] ?? '',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black,
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(
-                  'Date: ${_formatDate(eventData['startDate'])} - ${_formatDate(eventData['endDate'])}',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Address: ${eventData['address'] ?? ''}',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Price: \$${eventData['ticketPrice'] ?? 'N/A'}',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Description:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  eventData['description'] ?? '',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Max Participants:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${eventData['maxParticipants'] ?? 0}',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                FutureBuilder<int>(
-                  future: _getBookingCount(eventId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Text("");
-                    }
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
-                    if (!snapshot.hasData) {
-                      return const Text('Booking count unavailable');
-                    }
-
-                    return Text(
-                      'Booked: ${snapshot.data}',
-                      style: TextStyle(
-                        color: isDarkMode ? Colors.white : Colors.black,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(eventData['organizerId'])
-                      .get(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<DocumentSnapshot> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    }
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
-                    if (!snapshot.hasData || !snapshot.data!.exists) {
-                      return const Text('Organizer information not available');
-                    }
-
-                    Map<String, dynamic> organizerData =
-                        snapshot.data!.data() as Map<String, dynamic>;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Organizer:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Organization: ${organizerData['organization'] ?? 'N/A'}',
-                          style: TextStyle(
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
-                        ),
-                        Text(
-                          'Phone: ${organizerData['phone'] ?? 'N/A'}',
-                          style: TextStyle(
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Book'),
-              onPressed: () {
-                try {
-                  _bookEvent(context, eventId, eventData);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Event booked successfully!')),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to book event: $e')),
-                  );
-                } finally {
-                  Navigator.of(context)
-                      .pop(); // Close the popup regardless of success/failure
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _formatDate(String? dateString) {
-    if (dateString == null) return '';
-    final date = DateTime.parse(dateString);
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  String _formatDateRange(String? startDateString, String? endDateString) {
+    if (startDateString == null || endDateString == null) return '';
+    final startDate = DateTime.parse(startDateString);
+    final endDate = DateTime.parse(endDateString);
+    final formatter = DateFormat('MMM d, y');
+    return '${formatter.format(startDate)} - ${formatter.format(endDate)}';
   }
 }
