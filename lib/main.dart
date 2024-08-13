@@ -4,8 +4,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_xploverse/firebase_options.dart';
 import 'package:flutter_xploverse/features/splash/presentation/view/splash_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-Future main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
@@ -20,7 +21,27 @@ Future main() async {
   } catch (e) {
     print("Firebase initialization failed: $e");
   }
+
+  // Request permissions
+  await requestPermissions();
+
   runApp(const ProviderScope(child: MyApp()));
+}
+
+Future<void> requestPermissions() async {
+  Map<Permission, PermissionStatus> statuses = await [
+    Permission.location,
+    Permission.locationAlways,
+    Permission.locationWhenInUse,
+    Permission.camera,
+    Permission.storage,
+  ].request();
+
+  statuses.forEach((permission, status) {
+    if (!status.isGranted) {
+      print('${permission.toString()} permission is not granted');
+    }
+  });
 }
 
 class MyApp extends StatelessWidget {
