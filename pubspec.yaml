@@ -61,6 +61,10 @@ dependencies:
   cached_network_image: ^3.4.0
   flutter_map_tile_caching: ^9.1.2
   flutter_compass: ^0.8.0
+  qr_flutter: ^4.1.0
+  permission_handler: ^11.3.1
+  get: ^4.6.6
+  carousel_slider: ^5.0.0
 
 dev_dependencies:
   flutter_test:

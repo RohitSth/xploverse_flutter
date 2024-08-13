@@ -51,31 +51,53 @@ class EventsScreen extends ConsumerWidget {
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        eventData['title'] ?? '',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: isDarkMode ? Colors.white : Colors.black,
+                      // Image section
+                      if (eventData['images'] != null &&
+                          eventData['images'].isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16.0),
+                          child: SizedBox(
+                            width: 80, // Adjust as needed
+                            height: 80, // Adjust as needed
+                            child: Image.network(
+                              eventData['images'][0],
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${_formatDate(eventData['startDate'])} - ${_formatDate(eventData['endDate'])}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDarkMode ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        eventData['address'] ?? '',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDarkMode ? Colors.white : Colors.black,
+                      // Title and other details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              eventData['title'] ?? '',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${_formatDate(eventData['startDate'])} - ${_formatDate(eventData['endDate'])}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              eventData['address'] ?? '',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

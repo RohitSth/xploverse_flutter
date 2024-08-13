@@ -111,7 +111,7 @@ class _MapPageState extends ConsumerState<MapPage> {
   void _calculateNearbyEvents() {
     if (userLocation == null) return;
 
-    const double maxDistance = 10.0; // Maximum distance in kilometers
+    const double maxDistance = 30.0; // Maximum distance in kilometers
 
     nearbyEvents = eventLatLngs.where((eventLatLng) {
       double distance = Geolocator.distanceBetween(
@@ -244,6 +244,7 @@ class _MapPageState extends ConsumerState<MapPage> {
       final eventData = eventDoc.data() as Map<String, dynamic>;
 
       showDialog(
+        // ignore: use_build_context_synchronously
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -327,6 +328,7 @@ class _MapPageState extends ConsumerState<MapPage> {
         },
       );
     } else {
+      // ignore: avoid_print
       print('Event not found');
     }
   }
@@ -356,8 +358,9 @@ class _MapPageState extends ConsumerState<MapPage> {
 
   // Method to calculate distance between user and event
   double _calculateDistance(LatLng eventLatLng) {
-    if (userLocation == null)
+    if (userLocation == null) {
       return 0.0; // Handle cases where user location is unavailable
+    }
 
     return Geolocator.distanceBetween(
           userLocation!.latitude,
@@ -377,12 +380,6 @@ class _MapPageState extends ConsumerState<MapPage> {
   void _handleEventsPopUp() {
     setState(() {
       _showEventsScreen = !_showEventsScreen;
-    });
-  }
-
-  void _showEventsPopUp() {
-    setState(() {
-      _showEventsScreen = true;
     });
   }
 
@@ -409,12 +406,15 @@ class _MapPageState extends ConsumerState<MapPage> {
           final searchResultLocation = LatLng(latitude, longitude);
           mapController.move(searchResultLocation, 15.0);
         } else {
+          // ignore: avoid_print
           print('No events found with the given title.');
         }
       } else {
+        // ignore: avoid_print
         print('No events found with the given title.');
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error during search: $e');
     }
   }
@@ -485,7 +485,6 @@ class _MapPageState extends ConsumerState<MapPage> {
                                       fit: BoxFit.cover,
                                       errorBuilder:
                                           (context, error, stackTrace) {
-                                        print('Error loading image: $error');
                                         return const Icon(Icons.person,
                                             size: 20);
                                       },
