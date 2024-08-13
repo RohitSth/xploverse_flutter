@@ -108,10 +108,12 @@ class ProfileDashboard extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Booking cancelled successfully')),
       );
+      Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error cancelling booking: $e')),
       );
+      Navigator.of(context).pop();
     }
   }
 }

@@ -103,6 +103,14 @@ class EventsScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      // Booking icon
+                      IconButton(
+                        onPressed: () {
+                          _bookEvent(context, eventId, eventData);
+                        },
+                        icon: const Icon(Icons.bookmark_add_outlined),
+                        color: Colors.blue,
+                      ),
                     ],
                   ),
                 ),
@@ -147,7 +155,6 @@ class EventsScreen extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Event booked successfully')),
       );
-      Navigator.of(context).pop(); // Close the dialog
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error booking event: $e')),
@@ -310,9 +317,21 @@ class EventsScreen extends ConsumerWidget {
               },
             ),
             TextButton(
-              child: const Text('Book Event'),
+              child: const Text('Book'),
               onPressed: () {
-                _bookEvent(context, eventId, eventData);
+                try {
+                  _bookEvent(context, eventId, eventData);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Event booked successfully!')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to book event: $e')),
+                  );
+                } finally {
+                  Navigator.of(context)
+                      .pop(); // Close the popup regardless of success/failure
+                }
               },
             ),
           ],

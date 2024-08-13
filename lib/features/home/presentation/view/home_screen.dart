@@ -11,7 +11,6 @@ import 'package:flutter_xploverse/features/auth/presentation/view/login.dart';
 import 'package:flutter_xploverse/features/auth/presentation/viewmodel/authentication.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/events_management.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/event_screen.dart';
-import 'package:flutter_xploverse/features/event/presentation/view/tickets_view/tickets_screen.dart';
 import 'package:flutter_xploverse/features/home/presentation/view/bottom_view/fade_page_route.dart';
 import 'package:flutter_xploverse/features/home/presentation/view/bottom_view/profile_screen.dart';
 import 'package:flutter_xploverse/features/map/presentation/view/map_screen.dart';
@@ -91,7 +90,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
 
         return userType.when(
-          loading: () => const CircularProgressIndicator(),
+          loading: () => const Text(""),
           error: (err, stack) => Text('Error: $err'),
           data: (userType) {
             final Size size = MediaQuery.of(context).size;
