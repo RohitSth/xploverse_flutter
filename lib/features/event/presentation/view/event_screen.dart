@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -111,6 +112,35 @@ class EventsScreen extends ConsumerWidget {
     );
   }
 
+  void _bookEvent(BuildContext context, Map<String, dynamic> eventData) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to book an event')),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance.collection('bookings').add({
+        'userId': user.uid,
+        'eventId': eventData['id'],
+        'eventTitle': eventData['title'],
+        'eventDate': eventData['startDate'],
+        'bookingDate': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event booked successfully')),
+      );
+      Navigator.of(context).pop(); // Close the dialog
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error booking event: $e')),
+      );
+    }
+  }
+
   void _showEventDetailsPopup(
       BuildContext context, Map<String, dynamic> eventData, bool isDarkMode) {
     showDialog(
@@ -217,6 +247,12 @@ class EventsScreen extends ConsumerWidget {
               child: const Text('Close'),
               onPressed: () {
                 Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Book Event'),
+              onPressed: () {
+                _bookEvent(context, eventData);
               },
             ),
           ],

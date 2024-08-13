@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_xploverse/features/auth/presentation/view/profile_dashboard.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -271,6 +272,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _showUpdateProfileDialog(userData);
                         },
                         child: Text(isOrganizer ? 'Edit Profile' : 'Edit Bio'),
+                      ),
+                      // Cooler button
+                      ElevatedButton(
+                        onPressed: () {
+                          // Show ProfileDashboard as a pop-up (80% height)
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(20),
+                                topRight: Radius.circular(20),
+                              ),
+                            ),
+                            builder: (context) => SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.8,
+                              child: const ProfileDashboard(),
+                            ),
+                          );
+                        },
+                        child: const Text('Profile Dashboard'),
                       ),
                     ],
                   ),
