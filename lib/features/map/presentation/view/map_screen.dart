@@ -6,9 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_xploverse/features/map/domain/use_case/route_api.dart';
+import 'package:flutter_xploverse/features/map/presentation/navigator/event_location_listener.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/beam_painter.dart';
+import 'package:flutter_xploverse/features/map/presentation/widget/compass_icon.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/event_location.dart';
-import 'package:flutter_xploverse/features/map/presentation/widget/event_location_listener.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/event_search.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/show_event_pop_up.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/user_profile_picture.dart';
@@ -35,8 +36,8 @@ class _MapPageState extends ConsumerState<MapPage> {
   bool _showCancelRouteButton = false;
   LatLng? _selectedEventLatLng;
 
-  bool _rotateWithCompass = false;
-  double _mapRotation = 0;
+  bool _isMounted = false;
+  StreamSubscription<void>? _eventSubscription;
 
   double _direction = 0;
 
@@ -48,8 +49,6 @@ class _MapPageState extends ConsumerState<MapPage> {
   Map<LatLng, String> eventNames =
       {}; // Map to store event names by their location
   List<Map<String, dynamic>> nearbyEvents = []; //For List of nearby events
-
-  StreamSubscription<QuerySnapshot>? eventSubscription;
 
   final Map<String, TileLayer> layers = {
     'Default': TileLayer(
@@ -148,19 +147,25 @@ class _MapPageState extends ConsumerState<MapPage> {
   @override
   void initState() {
     super.initState();
+    _isMounted = true;
     currentLayer = 'Default';
     _getCurrentLocation();
-    listenToEventLocations((latLngList, nameMap) {
-      setState(() {
-        eventLatLngs = latLngList;
-        eventNames = nameMap;
-      });
-    }); // Set up real-time listener for event locations
+    _eventSubscription = listenToEventLocations((latLngList, nameMap) {
+      if (_isMounted) {
+        setState(() {
+          eventLatLngs = latLngList;
+          eventNames = nameMap;
+          _calculateNearbyEvents();
+        });
+      }
+    });
     _getUserProfilePicture();
     FlutterCompass.events?.listen((CompassEvent event) {
-      setState(() {
-        _direction = event.heading ?? 0;
-      });
+      if (_isMounted) {
+        setState(() {
+          _direction = event.heading ?? 0;
+        });
+      }
     });
   }
 
@@ -173,7 +178,8 @@ class _MapPageState extends ConsumerState<MapPage> {
 
   @override
   void dispose() {
-    eventSubscription?.cancel(); // Cancel subscription to avoid memory leaks
+    _isMounted = false;
+    _eventSubscription?.cancel(); // Cancel subscription to avoid memory leaks
     super.dispose();
   }
 
@@ -189,12 +195,12 @@ class _MapPageState extends ConsumerState<MapPage> {
       });
       _moveToCurrentLocation();
       _liveLocation();
+      _calculateNearbyEvents(); // Add this line
     } catch (e) {
       setState(() {
         locationMessage = "Error getting location: $e";
       });
     }
-    _calculateNearbyEvents();
   }
 
   void _liveLocation() {
@@ -203,20 +209,23 @@ class _MapPageState extends ConsumerState<MapPage> {
       distanceFilter: 10,
     );
 
-    setState(() {
-      locationMessage = 'Live location active';
-    });
+    if (_isMounted) {
+      setState(() {
+        locationMessage = 'Live location active';
+      });
+    }
 
     Geolocator.getPositionStream(locationSettings: locationSettings)
         .listen((Position position) {
-      setState(() {
-        userLocation = LatLng(position.latitude, position.longitude);
-        locationMessage =
-            'Live location active: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
-        // Trigger route recalculation when user location changes
-        _recalculateRoute();
-        _calculateNearbyEvents();
-      });
+      if (_isMounted) {
+        setState(() {
+          userLocation = LatLng(position.latitude, position.longitude);
+          locationMessage =
+              'Live location active: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+          _recalculateRoute();
+          _calculateNearbyEvents();
+        });
+      }
     });
   }
 
@@ -471,7 +480,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              'Nearby Events',
+                              'Nearby Events (30KM Radius)',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
@@ -496,6 +505,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                                 '${event['name']} (${distance.toStringAsFixed(1)} km)',
                               ),
                               onTap: () {
+                                _getRoute(eventLatLng);
                                 showEventPopup(context, eventLatLng);
                               },
                             );
@@ -567,21 +577,12 @@ class _MapPageState extends ConsumerState<MapPage> {
             ),
           ),
           // Compass
-
           Positioned(
             top: 100,
             right: 10,
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDarkMode ? Colors.black54 : Colors.white70,
-                shape: BoxShape.circle,
-              ),
-              padding: const EdgeInsets.all(8),
-              child: Transform.rotate(
-                angle: ((_direction ?? 0) * (math.pi / 180) * -1),
-                child:
-                    const Icon(Icons.navigation, size: 30, color: Colors.blue),
-              ),
+            child: CompassIcon(
+              direction: _direction ?? 0,
+              isDarkMode: isDarkMode,
             ),
           ),
 
