@@ -6,6 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_xploverse/features/map/domain/use_case/route_api.dart';
+import 'package:flutter_xploverse/features/map/presentation/widget/beam_painter.dart';
+import 'package:flutter_xploverse/features/map/presentation/widget/event_location.dart';
+import 'package:flutter_xploverse/features/map/presentation/widget/event_location_listener.dart';
+import 'package:flutter_xploverse/features/map/presentation/widget/event_search.dart';
+import 'package:flutter_xploverse/features/map/presentation/widget/show_event_pop_up.dart';
+import 'package:flutter_xploverse/features/map/presentation/widget/user_profile_picture.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -144,7 +150,12 @@ class _MapPageState extends ConsumerState<MapPage> {
     super.initState();
     currentLayer = 'Default';
     _getCurrentLocation();
-    _listenToEventLocations(); // Set up real-time listener for event locations
+    listenToEventLocations((latLngList, nameMap) {
+      setState(() {
+        eventLatLngs = latLngList;
+        eventNames = nameMap;
+      });
+    }); // Set up real-time listener for event locations
     _getUserProfilePicture();
     FlutterCompass.events?.listen((CompassEvent event) {
       setState(() {
@@ -154,24 +165,10 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 
   Future<void> _getUserProfilePicture() async {
-    final User? user = FirebaseAuth.instance.currentUser;
-    print('Current user: ${user?.uid}');
-    if (user != null) {
-      try {
-        final userData = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        print('User data: ${userData.data()}');
-        setState(() {
-          userProfilePictureUrl =
-              userData.data()?['profilePictureUrl'] ?? user.photoURL;
-        });
-        print('User profile picture URL: $userProfilePictureUrl');
-      } catch (e) {
-        print('Error fetching user data: $e');
-      }
-    }
+    final url = await getUserProfilePictureUrl();
+    setState(() {
+      userProfilePictureUrl = url;
+    });
   }
 
   @override
@@ -198,150 +195,6 @@ class _MapPageState extends ConsumerState<MapPage> {
       });
     }
     _calculateNearbyEvents();
-  }
-
-  void _listenToEventLocations() {
-    eventSubscription = FirebaseFirestore.instance
-        .collection('events')
-        .orderBy('startDate', descending: true)
-        .snapshots()
-        .listen((QuerySnapshot querySnapshot) {
-      List<LatLng> latLngList = [];
-      Map<LatLng, String> nameMap = {};
-
-      for (var doc in querySnapshot.docs) {
-        double? latitude = doc['latitude'];
-        double? longitude = doc['longitude'];
-        String? title = doc['title'];
-        String? endDateString = doc['endDate'];
-
-        if (latitude != null && longitude != null && endDateString != null) {
-          DateTime endDate = DateTime.parse(endDateString);
-
-          // Only include events that haven't ended yet
-          if (endDate.isAfter(DateTime.now())) {
-            LatLng latLng = LatLng(latitude, longitude);
-            latLngList.add(latLng);
-            if (title != null) {
-              nameMap[latLng] = title;
-            }
-          }
-        }
-      }
-
-      setState(() {
-        eventLatLngs = latLngList;
-        eventNames = nameMap;
-      });
-    }, onError: (e) {
-      print('Error listening to event locations: $e');
-      setState(() {
-        locationMessage = "Error fetching events: $e";
-      });
-    });
-  }
-
-  void _showEventPopup(LatLng eventLatLng) async {
-    // Fetch event details from Firestore
-    final QuerySnapshot eventSnapshot = await FirebaseFirestore.instance
-        .collection('events')
-        .where('latitude', isEqualTo: eventLatLng.latitude)
-        .where('longitude', isEqualTo: eventLatLng.longitude)
-        .limit(1)
-        .get();
-
-    if (eventSnapshot.docs.isNotEmpty) {
-      final eventDoc = eventSnapshot.docs.first;
-      final eventData = eventDoc.data() as Map<String, dynamic>;
-
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text(eventData['title'] ?? 'Event Details'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Text('Description: ${eventData['description'] ?? 'N/A'}'),
-                  Text(
-                    'Date: ${_formatDate(eventData['startDate'])} - ${_formatDate(eventData['endDate'])}',
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Price: \$${eventData['ticketPrice'] ?? 'N/A'}',
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Description:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    eventData['description'] ?? '',
-                  ),
-                  const SizedBox(height: 16),
-                  FutureBuilder<DocumentSnapshot>(
-                    future: FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(eventData['organizerId'])
-                        .get(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<DocumentSnapshot> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      }
-                      if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      }
-                      if (!snapshot.hasData || !snapshot.data!.exists) {
-                        return const Text(
-                            'Organizer information not available');
-                      }
-
-                      Map<String, dynamic> organizerData =
-                          snapshot.data!.data() as Map<String, dynamic>;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Organizer:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Organization: ${organizerData['organization'] ?? 'N/A'}',
-                          ),
-                          Text(
-                            'Phone: ${organizerData['phone'] ?? 'N/A'}',
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  // Add more event details as needed
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Close'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      // ignore: avoid_print
-      print('Event not found');
-    }
   }
 
   void _liveLocation() {
@@ -401,32 +254,11 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 
   Future<void> _search(String query) async {
-    try {
-      final QuerySnapshot eventSnapshot = await FirebaseFirestore.instance
-          .collection('events')
-          .where('title', isEqualTo: query)
-          .get();
-
-      if (eventSnapshot.docs.isNotEmpty) {
-        final doc = eventSnapshot.docs.first;
-        final double? latitude = doc['latitude'];
-        final double? longitude = doc['longitude'];
-
-        if (latitude != null && longitude != null) {
-          // Instead of updating userLocation, directly move the map
-          final searchResultLocation = LatLng(latitude, longitude);
-          mapController.move(searchResultLocation, 15.0);
-        } else {
-          // ignore: avoid_print
-          print('No events found with the given title.');
-        }
-      } else {
-        // ignore: avoid_print
-        print('No events found with the given title.');
-      }
-    } catch (e) {
-      // ignore: avoid_print
-      print('Error during search: $e');
+    final searchResultLocation = await searchEventLocation(query);
+    if (searchResultLocation != null) {
+      mapController.move(searchResultLocation, 15.0);
+    } else {
+      print('No events found with the given title.');
     }
   }
 
@@ -475,7 +307,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                     CircleMarker(
                       point: userLocation!,
                       radius: 50, // Adjust this value to change the circle size
-                      color: Colors.blue.withOpacity(0.3),
+                      color: Colors.blue.withOpacity(0.2),
                     ),
                 ],
               ),
@@ -489,20 +321,10 @@ class _MapPageState extends ConsumerState<MapPage> {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Torch effect
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  Colors.blue.withOpacity(0.3),
-                                  Colors.blue.withOpacity(0.0),
-                                ],
-                                stops: const [0.5, 1.0],
-                              ),
-                            ),
+                          // Beam of Light
+                          CustomPaint(
+                            size: const Size(25, 25),
+                            painter: BeamPainter(direction: _direction),
                           ),
                           // User profile picture
                           Container(
@@ -525,15 +347,6 @@ class _MapPageState extends ConsumerState<MapPage> {
                                       },
                                     )
                                   : const Icon(Icons.person, size: 20),
-                            ),
-                          ),
-                          // Compass
-                          Transform.rotate(
-                            angle: ((_direction ?? 0) * (math.pi / 180) * -1),
-                            child: const Icon(
-                              Icons.navigation,
-                              size: 24,
-                              color: Colors.blue,
                             ),
                           ),
                         ],
@@ -578,7 +391,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                             if (_selectedEventLatLng == eventLatLng)
                               ElevatedButton(
                                 onPressed: () {
-                                  _showEventPopup(eventLatLng);
+                                  showEventPopup(context, eventLatLng);
                                 },
                                 child: const Text('View More'),
                               ),
@@ -683,7 +496,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                                 '${event['name']} (${distance.toStringAsFixed(1)} km)',
                               ),
                               onTap: () {
-                                _showEventPopup(event['latLng']);
+                                showEventPopup(context, eventLatLng);
                               },
                             );
                           },
