@@ -9,7 +9,8 @@ import 'package:flutter_xploverse/features/map/domain/use_case/route_api.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_xploverse/features/event/presentation/view/event_screen.dart';
+import 'dart:math' as math;
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -27,6 +28,11 @@ class _MapPageState extends ConsumerState<MapPage> {
   bool _showEventsScreen = false;
   bool _showCancelRouteButton = false;
   LatLng? _selectedEventLatLng;
+
+  bool _rotateWithCompass = false;
+  double _mapRotation = 0;
+
+  double _direction = 0;
 
   String? userProfilePictureUrl;
 
@@ -140,6 +146,11 @@ class _MapPageState extends ConsumerState<MapPage> {
     _getCurrentLocation();
     _listenToEventLocations(); // Set up real-time listener for event locations
     _getUserProfilePicture();
+    FlutterCompass.events?.listen((CompassEvent event) {
+      setState(() {
+        _direction = event.heading ?? 0;
+      });
+    });
   }
 
   Future<void> _getUserProfilePicture() async {
@@ -458,24 +469,48 @@ class _MapPageState extends ConsumerState<MapPage> {
             ),
             children: [
               layers[currentLayer]!,
+              CircleLayer(
+                circles: [
+                  if (userLocation != null)
+                    CircleMarker(
+                      point: userLocation!,
+                      radius: 50, // Adjust this value to change the circle size
+                      color: Colors.blue.withOpacity(0.3),
+                    ),
+                ],
+              ),
               MarkerLayer(
                 markers: [
                   if (userLocation != null)
                     Marker(
                       point: userLocation!,
-                      width: 50,
+                      width: 60,
                       height: 60,
                       child: Stack(
-                        alignment: Alignment.topCenter,
+                        alignment: Alignment.center,
                         children: [
+                          // Torch effect
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: [
+                                  Colors.blue.withOpacity(0.3),
+                                  Colors.blue.withOpacity(0.0),
+                                ],
+                                stops: const [0.5, 1.0],
+                              ),
+                            ),
+                          ),
+                          // User profile picture
                           Container(
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: const Color.fromARGB(136, 0, 204, 255),
-                                  width: 2),
+                              border: Border.all(color: Colors.white, width: 2),
                             ),
                             child: ClipOval(
                               child: userProfilePictureUrl != null &&
@@ -490,6 +525,15 @@ class _MapPageState extends ConsumerState<MapPage> {
                                       },
                                     )
                                   : const Icon(Icons.person, size: 20),
+                            ),
+                          ),
+                          // Compass
+                          Transform.rotate(
+                            angle: ((_direction ?? 0) * (math.pi / 180) * -1),
+                            child: const Icon(
+                              Icons.navigation,
+                              size: 24,
+                              color: Colors.blue,
                             ),
                           ),
                         ],
@@ -709,6 +753,25 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
           ),
+          // Compass
+
+          Positioned(
+            top: 100,
+            right: 10,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.black54 : Colors.white70,
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(8),
+              child: Transform.rotate(
+                angle: ((_direction ?? 0) * (math.pi / 180) * -1),
+                child:
+                    const Icon(Icons.navigation, size: 30, color: Colors.blue),
+              ),
+            ),
+          ),
+
           // Live location info
           Positioned(
             top: 90,
