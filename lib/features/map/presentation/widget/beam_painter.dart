@@ -14,7 +14,9 @@ class BeamPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final Path path = Path();
-    final double startAngle = direction - (beamWidth / 2);
+    final double adjustedDirection =
+        direction - 90.0; // Adjusting by 90 degrees
+    final double startAngle = adjustedDirection - (beamWidth / 2);
     final double sweepAngle = beamWidth;
 
     final Rect rect = Rect.fromCircle(
