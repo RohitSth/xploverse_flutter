@@ -1,22 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_xploverse/features/map/domain/use_case/route_api.dart';
 import 'package:flutter_xploverse/features/map/presentation/navigator/event_location_listener.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/beam_painter.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/compass_icon.dart';
-import 'package:flutter_xploverse/features/map/presentation/widget/event_location.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/event_search.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/show_event_pop_up.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/user_profile_picture.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:math' as math;
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -57,26 +53,20 @@ class _MapPageState extends ConsumerState<MapPage> {
       subdomains: const ['a', 'b', 'c'],
       userAgentPackageName: 'com.example.xploverse',
       tileProvider: NetworkTileProvider(),
-      maxZoom: 20,
-      maxNativeZoom: 18,
-      keepBuffer: 10,
+      keepBuffer: 20,
     ),
     'OpenStreetMap': TileLayer(
       urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       userAgentPackageName: 'com.example.xploverse',
       tileProvider: NetworkTileProvider(),
-      maxZoom: 20,
-      maxNativeZoom: 18,
-      keepBuffer: 10,
+      keepBuffer: 20,
     ),
     'Esri World Imagery': TileLayer(
       urlTemplate:
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       userAgentPackageName: 'com.example.xploverse',
       tileProvider: NetworkTileProvider(),
-      maxZoom: 20,
-      maxNativeZoom: 18,
-      keepBuffer: 10,
+      keepBuffer: 20,
     ),
   };
 
@@ -290,9 +280,7 @@ class _MapPageState extends ConsumerState<MapPage> {
       subdomains: const ['a', 'b', 'c'],
       userAgentPackageName: 'com.example.xploverse',
       tileProvider: NetworkTileProvider(),
-      maxZoom: 20,
-      maxNativeZoom: 18,
-      keepBuffer: 10,
+      keepBuffer: 20,
     );
 
     return Scaffold(

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_xploverse/features/event/presentation/navigator/booked_provider.dart';
@@ -24,7 +23,7 @@ class EventsScreen extends ConsumerWidget {
           final event = allEvents[index];
           return Card(
             clipBehavior: Clip.antiAlias,
-            color: isDarkMode ? Colors.grey[800] : Colors.white,
+            color: isDarkMode ? Colors.black : Colors.white,
             child: Row(
               children: [
                 // Image

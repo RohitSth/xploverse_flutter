@@ -61,7 +61,7 @@ class EventsScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           Text(
             message,
-            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 18, color: Colors.white),
             textAlign: TextAlign.center,
           ),
         ],
@@ -169,7 +169,7 @@ class EventsScreen extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: isDarkMode ? Colors.black : Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -237,12 +237,15 @@ class EventsScreen extends ConsumerWidget {
                             .pop(); // Close the popup regardless of success/failure
                       }
                     },
-                    child: const Text('Book'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
+                    ),
+                    child: const Text(
+                      'Book',
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ),

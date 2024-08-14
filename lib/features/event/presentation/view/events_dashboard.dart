@@ -142,7 +142,7 @@ class ProfileDashboard extends StatelessWidget {
           : Container(
               width: 60,
               height: 60,
-              color: Colors.grey,
+              color: Colors.black,
               child: const Icon(Icons.event, color: Colors.white),
             ),
     );
@@ -241,7 +241,7 @@ class ProfileDashboard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isDarkMode ? Colors.grey[900] : Colors.white,
+          color: isDarkMode ? Colors.black : Colors.white,
           shape: BoxShape.rectangle,
           borderRadius: BorderRadius.circular(20),
           boxShadow: const [
@@ -296,10 +296,6 @@ class ProfileDashboard extends StatelessWidget {
       Map<String, dynamic> eventData, bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: isDarkMode ? Colors.black54 : Colors.grey[200],
-        borderRadius: BorderRadius.circular(10),
-      ),
       child: Text(
         eventData['description'] ?? 'No description available',
         style: TextStyle(

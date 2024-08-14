@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_xploverse/features/auth/presentation/view/profile_dashboard.dart';
+import 'package:flutter_xploverse/features/event/presentation/view/events_dashboard.dart';
 import 'package:flutter_xploverse/features/event/presentation/navigator/booked_provider.dart';
 import 'package:flutter_xploverse/features/auth/presentation/view/login.dart';
 import 'package:flutter_xploverse/features/auth/presentation/viewmodel/authentication.dart';
