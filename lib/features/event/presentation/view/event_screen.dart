@@ -131,14 +131,8 @@ class EventsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton.icon(
-                    onPressed: () => _showEventDetailsPopup(
-                        context, eventData, eventId, isDarkMode),
-                    icon: const Icon(Icons.info_outline),
-                    label: const Text('Details'),
-                  ),
                   ElevatedButton.icon(
                     onPressed: () =>
                         _showBookingDialog(context, eventId, eventData),
@@ -240,7 +234,7 @@ class EventsScreen extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ... (existing code)
+                    // Your existing UI code...
 
                     const SizedBox(height: 16),
                     Row(
@@ -272,7 +266,7 @@ class EventsScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
                     Center(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           try {
                             _bookEvent(
                                 context, eventId, eventData, ticketQuantity);
@@ -281,14 +275,14 @@ class EventsScreen extends ConsumerWidget {
                                   content: Text(
                                       '$ticketQuantity ticket(s) booked successfully!')),
                             );
-                            Navigator.of(context).pop();
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                   content: Text('Failed to book event: $e')),
                             );
                           } finally {
-                            Navigator.of(context).pop();
+                            Navigator.of(context)
+                                .pop(); // Close the dialog after booking or error
                           }
                         },
                         style: ElevatedButton.styleFrom(

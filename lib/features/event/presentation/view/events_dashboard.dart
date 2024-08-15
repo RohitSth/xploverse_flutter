@@ -95,12 +95,15 @@ class ProfileDashboard extends StatelessWidget {
         }
 
         return Card(
-          elevation: 4,
+          elevation: 5,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shadowColor: Colors.grey.withOpacity(0.5), // Subtle shadow effect
           child: InkWell(
             onTap: () => _showTicketQRCodes(context, bookings, eventData),
+            borderRadius:
+                BorderRadius.circular(15), // Rounded corners for ripple effect
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -115,27 +118,46 @@ class ProfileDashboard extends StatelessWidget {
                         Text(
                           eventData['title'] ?? 'No title',
                           style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                            fontSize: 20, // Slightly larger title font size
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(
+                            height:
+                                8), // Increased spacing for better separation
                         Text(
                           'Date: ${_formatDate(eventData['startDate'])}',
-                          style: const TextStyle(fontSize: 14),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors
+                                .grey[700], // Subtle color for less emphasis
+                          ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 8),
                         Text(
                           'Tickets: $ticketCount',
                           style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
+                            fontSize: 16, // Slightly larger font size
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(255, 79, 155, 218),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _deleteBooking(context, bookings),
+                  Column(
+                    children: [
+                      Icon(Icons.qr_code,
+                          color: Theme.of(context).primaryColor),
+                      const SizedBox(height: 8), // Spacing between icons
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _deleteBooking(context, bookings),
+                        tooltip:
+                            'Delete Booking', // Tooltip for better accessibility
+                      ),
+                    ],
                   ),
-                  Icon(Icons.qr_code, color: Theme.of(context).primaryColor),
                 ],
               ),
             ),
@@ -332,66 +354,104 @@ class ProfileDashboard extends StatelessWidget {
   Future<void> _deleteBooking(
       BuildContext context, List<DocumentSnapshot> bookings) async {
     int totalTickets = bookings.length;
-    int ticketsToDelete = totalTickets;
 
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Delete Tickets'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Total tickets: $totalTickets'),
-                  const SizedBox(height: 10),
-                  Text('Tickets to delete: $ticketsToDelete'),
-                  Slider(
-                    value: ticketsToDelete.toDouble(),
-                    min: 1,
-                    max: totalTickets.toDouble(),
-                    divisions: totalTickets - 1,
-                    label: ticketsToDelete.toString(),
-                    onChanged: (double value) {
-                      setState(() {
-                        ticketsToDelete = value.round();
-                      });
+    if (totalTickets == 1) {
+      // Directly prompt to delete the single ticket
+      bool confirmDelete = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Delete Ticket'),
+            content: const Text('Are you sure you want to delete this ticket?'),
+            actions: [
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child: const Text('Delete'),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirmDelete) {
+        try {
+          await bookings.first.reference.delete();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ticket deleted successfully')),
+          );
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting ticket: $e')),
+          );
+        }
+      }
+    } else {
+      int ticketsToDelete = totalTickets;
+
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('Delete Tickets'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Total tickets: $totalTickets'),
+                    const SizedBox(height: 10),
+                    Text('Tickets to delete: $ticketsToDelete'),
+                    Slider(
+                      value: ticketsToDelete.toDouble(),
+                      min: 1,
+                      max: totalTickets.toDouble(),
+                      divisions: totalTickets - 1,
+                      label: ticketsToDelete.toString(),
+                      onChanged: (double value) {
+                        setState(() {
+                          ticketsToDelete = value.round();
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    child: const Text('Cancel'),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  TextButton(
+                    child: const Text('Delete'),
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      try {
+                        for (int i = 0; i < ticketsToDelete; i++) {
+                          await bookings[i].reference.delete();
+                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  '$ticketsToDelete ticket(s) deleted successfully')),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('Error deleting ticket(s): $e')),
+                        );
+                      }
                     },
                   ),
                 ],
-              ),
-              actions: [
-                TextButton(
-                  child: const Text('Cancel'),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                TextButton(
-                  child: const Text('Delete'),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    try {
-                      for (int i = 0; i < ticketsToDelete; i++) {
-                        await bookings[i].reference.delete();
-                      }
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text(
-                                '$ticketsToDelete ticket(s) deleted successfully')),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error deleting ticket(s): $e')),
-                      );
-                    }
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+              );
+            },
+          );
+        },
+      );
+    }
   }
 
   String _formatDate(String? dateString) {
