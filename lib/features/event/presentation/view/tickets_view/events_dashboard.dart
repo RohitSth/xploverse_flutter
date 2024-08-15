@@ -99,7 +99,6 @@ class ProfileDashboard extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          shadowColor: Colors.grey.withOpacity(0.5), // Subtle shadow effect
           child: InkWell(
             onTap: () => _showTicketQRCodes(context, bookings, eventData),
             borderRadius:
