@@ -119,12 +119,14 @@ class EventsScreen extends ConsumerWidget {
                   _buildInfoRow(
                       Icons.calendar_today,
                       _formatDateRange(
-                          eventData['startDate'], eventData['endDate'])),
+                          eventData['startDate'], eventData['endDate']),
+                      isDarkMode),
                   const SizedBox(height: 4),
-                  _buildInfoRow(Icons.location_on, eventData['address'] ?? ''),
+                  _buildInfoRow(Icons.location_on, eventData['address'] ?? '',
+                      isDarkMode),
                   const SizedBox(height: 4),
                   _buildInfoRow(Icons.attach_money,
-                      '${eventData['ticketPrice'] ?? 'N/A'}'),
+                      '${eventData['ticketPrice'] ?? 'N/A'}', isDarkMode),
                 ],
               ),
             ),
@@ -247,42 +249,48 @@ class EventsScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
                     Text(
                       eventData['title'] ?? 'OKAEEE',
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: isDarkMode ? Colors.white : Colors.black,
                           fontSize: 24,
                           fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       eventData['subtitle'] ?? 'Nicee',
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      style: TextStyle(
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          fontSize: 18),
                     ),
                     const SizedBox(height: 16),
-                    _buildInfoRow(
-                        Icons.location_on, eventData['address'] ?? 'KTMsdljh'),
+                    _buildInfoRow(Icons.location_on,
+                        eventData['address'] ?? 'KTMsdljh', isDarkMode),
                     const SizedBox(height: 8),
                     _buildInfoRow(
                         Icons.calendar_today,
                         _formatDateRange(
-                            eventData['startDate'], eventData['endDate'])),
+                            eventData['startDate'], eventData['endDate']),
+                        isDarkMode),
                     const SizedBox(height: 8),
                     _buildInfoRow(Icons.attach_money,
-                        '${eventData['ticketPrice'] ?? '2.0'}'),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(Icons.people,
-                        '${eventData['maxParticipants'] ?? '20'} MAX'),
+                        '${eventData['ticketPrice'] ?? '2.0'}', isDarkMode),
                     const SizedBox(height: 8),
                     _buildInfoRow(
-                        Icons.description, eventData['description'] ?? 'TEST'),
+                        Icons.people,
+                        '${eventData['maxParticipants'] ?? '20'} MAX',
+                        isDarkMode),
                     const SizedBox(height: 8),
-                    _buildInfoRow(
-                        Icons.phone, eventData['phone'] ?? '9898989822'),
+                    _buildInfoRow(Icons.description,
+                        eventData['description'] ?? 'TEST', isDarkMode),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(Icons.phone,
+                        eventData['phone'] ?? '9898989822', isDarkMode),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.remove, color: Colors.white),
+                          icon: Icon(Icons.remove,
+                              color: isDarkMode ? Colors.white : Colors.black),
                           onPressed: () {
                             setState(() {
                               if (ticketQuantity > 1) ticketQuantity--;
@@ -291,11 +299,13 @@ class EventsScreen extends ConsumerWidget {
                         ),
                         Text(
                           '$ticketQuantity',
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 18),
+                          style: TextStyle(
+                              color: isDarkMode ? Colors.white : Colors.black,
+                              fontSize: 18),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.add, color: Colors.white),
+                          icon: Icon(Icons.add,
+                              color: isDarkMode ? Colors.white : Colors.black),
                           onPressed: () {
                             setState(() {
                               ticketQuantity++;
@@ -348,7 +358,7 @@ class EventsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildInfoRow(IconData icon, String text, bool isDarkMode) {
     return Row(
       children: [
         Icon(icon, color: Colors.blue, size: 20),
@@ -356,7 +366,8 @@ class EventsScreen extends ConsumerWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(color: Colors.blue, fontSize: 14),
+            style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black, fontSize: 14),
           ),
         ),
       ],
