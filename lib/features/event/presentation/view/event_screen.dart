@@ -234,8 +234,49 @@ class EventsScreen extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Your existing UI code...
-
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: const Icon(Icons.close,
+                              color: Colors.red, size: 20),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      eventData['title'] ?? 'OKAEEE',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      eventData['subtitle'] ?? 'Nicee',
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(
+                        Icons.location_on, eventData['address'] ?? 'KTMsdljh'),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                        Icons.calendar_today,
+                        _formatDateRange(
+                            eventData['startDate'], eventData['endDate'])),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(Icons.attach_money,
+                        '${eventData['ticketPrice'] ?? '2.0'}'),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(Icons.people,
+                        '${eventData['maxParticipants'] ?? '20'} MAX'),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                        Icons.description, eventData['description'] ?? 'TEST'),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                        Icons.phone, eventData['phone'] ?? '9898989822'),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -315,7 +356,7 @@ class EventsScreen extends ConsumerWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            style: const TextStyle(color: Colors.blue, fontSize: 14),
           ),
         ),
       ],
