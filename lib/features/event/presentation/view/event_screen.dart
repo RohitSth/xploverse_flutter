@@ -61,7 +61,7 @@ class EventsScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           Text(
             message,
-            style: TextStyle(fontSize: 18, color: Colors.white),
+            style: const TextStyle(fontSize: 18, color: Colors.white),
             textAlign: TextAlign.center,
           ),
         ],
@@ -140,7 +140,8 @@ class EventsScreen extends ConsumerWidget {
                     label: const Text('Details'),
                   ),
                   ElevatedButton.icon(
-                    onPressed: () => _bookEvent(context, eventId, eventData),
+                    onPressed: () =>
+                        _showBookingDialog(context, eventId, eventData),
                     icon: const Icon(Icons.bookmark_add_outlined),
                     label: const Text('Book'),
                     style: ElevatedButton.styleFrom(
@@ -157,101 +158,156 @@ class EventsScreen extends ConsumerWidget {
     );
   }
 
-  void _showEventDetailsPopup(BuildContext context,
-      Map<String, dynamic> eventData, String eventId, bool isDarkMode) {
+  void _showBookingDialog(
+      BuildContext context, String eventId, Map<String, dynamic> eventData) {
+    int ticketQuantity = 1;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDarkMode ? Colors.black : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Book Event: ${eventData['title']}'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Select number of tickets:'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove),
+                        onPressed: () {
+                          setState(() {
+                            if (ticketQuantity > 1) ticketQuantity--;
+                          });
+                        },
+                      ),
+                      Text('$ticketQuantity'),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          setState(() {
+                            ticketQuantity++;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _bookEvent(context, eventId, eventData, ticketQuantity);
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Book'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEventDetailsPopup(BuildContext context,
+      Map<String, dynamic> eventData, String eventId, bool isDarkMode) {
+    int ticketQuantity = 1; // Default quantity
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.black : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child:
-                          const Icon(Icons.close, color: Colors.red, size: 20),
+                    // ... (existing code)
+
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove, color: Colors.white),
+                          onPressed: () {
+                            setState(() {
+                              if (ticketQuantity > 1) ticketQuantity--;
+                            });
+                          },
+                        ),
+                        Text(
+                          '$ticketQuantity',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 18),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          onPressed: () {
+                            setState(() {
+                              ticketQuantity++;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          try {
+                            _bookEvent(
+                                context, eventId, eventData, ticketQuantity);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      '$ticketQuantity ticket(s) booked successfully!')),
+                            );
+                            Navigator.of(context).pop();
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('Failed to book event: $e')),
+                            );
+                          } finally {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text(
+                          'Book $ticketQuantity Ticket(s)',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  eventData['title'] ?? 'OKAEEE',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  eventData['subtitle'] ?? 'Nicee',
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                const SizedBox(height: 16),
-                _buildInfoRow(
-                    Icons.location_on, eventData['address'] ?? 'KTMsdljh'),
-                const SizedBox(height: 8),
-                _buildInfoRow(
-                    Icons.calendar_today,
-                    _formatDateRange(
-                        eventData['startDate'], eventData['endDate'])),
-                const SizedBox(height: 8),
-                _buildInfoRow(
-                    Icons.attach_money, '${eventData['ticketPrice'] ?? '2.0'}'),
-                const SizedBox(height: 8),
-                _buildInfoRow(Icons.people,
-                    '${eventData['maxParticipants'] ?? '20'} MAX'),
-                const SizedBox(height: 8),
-                _buildInfoRow(
-                    Icons.description, eventData['description'] ?? 'TEST'),
-                const SizedBox(height: 8),
-                _buildInfoRow(Icons.phone, eventData['phone'] ?? '9898989822'),
-                const SizedBox(height: 16),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      try {
-                        _bookEvent(context, eventId, eventData);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Event booked successfully!')),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to book event: $e')),
-                        );
-                      } finally {
-                        Navigator.of(context)
-                            .pop(); // Close the popup regardless of success/failure
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    child: const Text(
-                      'Book',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -281,7 +337,7 @@ class EventsScreen extends ConsumerWidget {
   }
 
   void _bookEvent(BuildContext context, String eventId,
-      Map<String, dynamic> eventData) async {
+      Map<String, dynamic> eventData, int quantity) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       _showSnackBar(context, 'Please log in to book an event');
@@ -291,20 +347,22 @@ class EventsScreen extends ConsumerWidget {
     final maxParticipants = eventData['maxParticipants'] ?? 0;
     final bookingCount = await _getBookingCount(eventId);
 
-    if (bookingCount >= maxParticipants) {
-      _showSnackBar(context, 'Event is fully booked');
+    if (bookingCount + quantity > maxParticipants) {
+      _showSnackBar(context, 'Not enough tickets available');
       return;
     }
 
     try {
-      await FirebaseFirestore.instance.collection('bookings').add({
-        'userId': user.uid,
-        'eventId': eventId,
-        'eventTitle': eventData['title'],
-        'eventDate': eventData['startDate'],
-        'bookingDate': FieldValue.serverTimestamp(),
-      });
-      _showSnackBar(context, 'Event booked successfully');
+      for (int i = 0; i < quantity; i++) {
+        await FirebaseFirestore.instance.collection('bookings').add({
+          'userId': user.uid,
+          'eventId': eventId,
+          'eventTitle': eventData['title'],
+          'eventDate': eventData['startDate'],
+          'bookingDate': FieldValue.serverTimestamp(),
+        });
+      }
+      _showSnackBar(context, '$quantity ticket(s) booked successfully');
     } catch (e) {
       _showSnackBar(context, 'Error booking event: $e');
     }
