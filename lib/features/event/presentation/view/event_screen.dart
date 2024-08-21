@@ -182,9 +182,9 @@ class EventsScreen extends ConsumerWidget {
               top: 0,
               right: -4,
               child: IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.bookmark_add_outlined,
-                  color: isDarkMode ? Colors.blue : Colors.black,
+                  color: Colors.blue,
                 ),
                 onPressed: () =>
                     _showBookingDialog(context, eventId, eventData),

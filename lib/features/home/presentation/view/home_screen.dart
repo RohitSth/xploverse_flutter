@@ -291,18 +291,37 @@ class UserProfileDropdown extends ConsumerWidget {
                   toggleTheme();
                 }
               },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              offset: const Offset(0, 50),
               itemBuilder: (BuildContext context) {
                 return [
                   PopupMenuItem<String>(
                     value: 'Toggle Theme',
-                    child: Text(isDarkMode ? 'Light Mode' : 'Dark Mode'),
+                    child: Center(
+                      child: Icon(
+                        Icons.brightness_6_outlined,
+                        color: isDarkMode
+                            ? Colors.white
+                            : const Color.fromARGB(255, 10, 123, 158),
+                      ),
+                    ),
                   ),
                   const PopupMenuItem<String>(
                     value: 'Logout',
-                    child: Text('Logout', style: TextStyle(color: Colors.red)),
+                    child: Center(
+                      child: Icon(
+                        Icons.login_outlined,
+                        color: Colors.red,
+                      ),
+                    ),
                   ),
                 ];
               },
+              constraints: const BoxConstraints(
+                maxWidth: 100,
+              ),
             );
           },
         );
