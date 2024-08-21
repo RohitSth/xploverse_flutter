@@ -3,8 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_xploverse/features/event/presentation/view/tickets_view/events_dashboard.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rxdart/rxdart.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -27,9 +27,94 @@ class _ProfileScreenState extends State<ProfileScreen> {
       false;
 
   bool isLoading = false;
+  int totalBookings = 0;
+  int totalEvents = 0;
+  int createdEvents = 0;
+
+  final _bookingStream = BehaviorSubject<int>();
+  final _createdEventStream = BehaviorSubject<int>();
+
+  @override
+  void initState() {
+    super.initState();
+    _setupListeners();
+  }
+
+  @override
+  void dispose() {
+    _bookingStream.close();
+    _createdEventStream.close();
+    super.dispose();
+  }
+
+  void _setupListeners() {
+    // Listener for booking changes
+    _bookingStream.listen((value) {
+      setState(() {
+        totalBookings = value;
+      });
+    });
+
+    // Listener for created event changes
+    _createdEventStream.listen((value) {
+      setState(() {
+        createdEvents = value;
+      });
+    });
+
+    // Fetch initial booking and event data
+    fetchBookingInfo();
+    fetchCreatedEvents();
+  }
+
+  Future<void> fetchBookingInfo() async {
+    try {
+      // Listen to changes in bookings collection for this user
+      FirebaseFirestore.instance
+          .collection('bookings')
+          .where('userId', isEqualTo: user?.uid)
+          .snapshots()
+          .listen((snapshot) {
+        // Only emit the event if the number of bookings changes
+        if (snapshot.docs.length != totalBookings) {
+          _bookingStream.add(snapshot.docs.length);
+          _updateTotalEvents(snapshot.docs);
+        }
+      });
+    } catch (e) {
+      print("Failed to retrieve booking information: $e");
+    }
+  }
+
+  void _updateTotalEvents(List<QueryDocumentSnapshot> bookings) {
+    // Get the unique event IDs from the bookings
+    Set eventIds = bookings.map((doc) => doc['eventId']).toSet();
+    // Only emit the event if the number of events changes
+    if (eventIds.length != totalEvents) {
+      _createdEventStream.add(eventIds.length);
+    }
+  }
+
+  Future<void> fetchCreatedEvents() async {
+    try {
+      // Listen to changes in events collection for this user
+      FirebaseFirestore.instance
+          .collection('events')
+          .where('organizerId', isEqualTo: user?.uid)
+          .snapshots()
+          .listen((snapshot) {
+        // Only emit the event if the number of created events changes
+        if (snapshot.docs.length != createdEvents) {
+          _createdEventStream.add(snapshot.docs.length);
+        }
+      });
+    } catch (e) {
+      print("Failed to retrieve created events: $e");
+    }
+  }
 
   Future<void> pickImage() async {
-    if (isGoogleSignIn) return; // Don't allow Google users to change picture
+    if (isGoogleSignIn) return;
 
     try {
       final XFile? pickedFile =
@@ -88,304 +173,278 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkMode ? Colors.black : Colors.grey[300];
+    final backgroundColor = isDarkMode ? Colors.black : Colors.grey[50];
+    final cardColor = isDarkMode ? Colors.grey[850] : Colors.white;
     final textColor = isDarkMode ? Colors.white : Colors.black;
-    final cardColor = isDarkMode ? Colors.grey[900] : Colors.grey[200];
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: allUsers.doc(user?.uid).snapshots(),
-        builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('No user data found'));
-          }
-
-          var userData = snapshot.data!.data() as Map<String, dynamic>;
-          String? profilePictureUrl = isGoogleSignIn
-              ? user?.photoURL
-              : (imageUrl ?? userData['profilePictureUrl'] ?? user?.photoURL);
-          bool isOrganizer = userData['usertype'] == 'Organizer';
-
-          return SingleChildScrollView(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.9,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 40),
-                      Stack(
-                        alignment: Alignment.bottomRight,
-                        children: [
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundImage: profilePictureUrl != null
-                                ? NetworkImage(profilePictureUrl)
-                                : null,
-                            child: profilePictureUrl == null
-                                ? const Icon(Icons.person,
-                                    size: 100, color: Colors.grey)
-                                : null,
-                          ),
-                          if (isLoading)
-                            Positioned.fill(
-                              child: Center(
-                                child: Container(
-                                  width:
-                                      120, // width and height should match the CircleAvatar
-                                  height:
-                                      120, // radius to create the same size as CircleAvatar
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (!isGoogleSignIn)
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: pickImage,
-                                child: CircleAvatar(
-                                  backgroundColor:
-                                      const Color.fromARGB(255, 10, 123, 158),
-                                  radius: 20,
-                                  child: Icon(
-                                    Icons.edit,
-                                    size: 20,
-                                    color: isDarkMode
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        userData['username'] ?? user?.displayName ?? 'Username',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        (userData['usertype'] ?? 'User Type').toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color.fromARGB(255, 10, 123, 158),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Card(
-                        color: cardColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Email:',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Color.fromARGB(255, 10, 123, 158),
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                userData['email'] ??
-                                    user?.email ??
-                                    'Email not available',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: textColor,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              const Text(
-                                'Bio:',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Color.fromARGB(255, 10, 123, 158),
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                userData['bio'] ?? 'No bio available',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: textColor,
-                                ),
-                              ),
-                              if (isOrganizer) ...[
-                                const SizedBox(height: 20),
-                                const Text(
-                                  'Phone:',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Color.fromARGB(255, 10, 123, 158),
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  userData['phone'] ??
-                                      'No phone number available',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: textColor,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          _showUpdateProfileDialog(userData);
-                        },
-                        child: Text(isOrganizer ? 'Edit Profile' : 'Edit Bio'),
-                      ),
-                      // Cooler button
-                      ElevatedButton(
-                        onPressed: () {
-                          // Show ProfileDashboard as a pop-up (80% height)
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(20),
-                                topRight: Radius.circular(20),
-                              ),
-                            ),
-                            builder: (context) => SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.8,
-                              child: const ProfileDashboard(),
-                            ),
-                          );
-                        },
-                        child: const Text('Profile Dashboard'),
-                      ),
-                    ],
-                  ),
-                ),
+      body: Stack(
+        children: [
+          // Background Gradient
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDarkMode
+                    ? [const Color(0xFF1E1E1E), const Color(0xFF323232)]
+                    : [const Color(0xFF4A90E2), const Color(0xFF50E3C2)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
-          );
-        },
+          ),
+          StreamBuilder<DocumentSnapshot>(
+            stream: allUsers
+                .doc(user?.uid)
+                .snapshots()
+                .debounceTime(const Duration(milliseconds: 500)),
+            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              if (!snapshot.hasData || !snapshot.data!.exists) {
+                return const Center(child: Text('No user data found'));
+              }
+
+              var userData = snapshot.data!.data() as Map<String, dynamic>;
+              String? profilePictureUrl = isGoogleSignIn
+                  ? user?.photoURL
+                  : (imageUrl ??
+                      userData['profilePictureUrl'] ??
+                      user?.photoURL);
+              bool isOrganizer = userData['usertype'] == 'Organizer';
+
+              // Fetch created events if the user is an organizer
+              if (isOrganizer) {
+                fetchCreatedEvents();
+              }
+
+              return SingleChildScrollView(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 40),
+                          Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              CircleAvatar(
+                                radius: 60,
+                                backgroundImage: profilePictureUrl != null
+                                    ? NetworkImage(profilePictureUrl)
+                                    : null,
+                                child: profilePictureUrl == null
+                                    ? Icon(Icons.person,
+                                        size: 100, color: Colors.grey[400])
+                                    : null,
+                              ),
+                              if (isLoading)
+                                Positioned.fill(
+                                  child: Center(
+                                    child: Container(
+                                      width: 120,
+                                      height: 120,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const CircularProgressIndicator(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (!isGoogleSignIn)
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: pickImage,
+                                    child: const CircleAvatar(
+                                      backgroundColor: Color(0xFF0A7B9E),
+                                      radius: 20,
+                                      child: Icon(
+                                        Icons.edit,
+                                        size: 20,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            userData['username'] ??
+                                user?.displayName ??
+                                'Username',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            (userData['usertype'] ?? 'User Type').toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Card(
+                            color: cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 8,
+                            shadowColor: Colors.black26,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildInfoText('Email', userData['email']),
+                                  const SizedBox(height: 20),
+                                  _buildInfoText('Bio', userData['bio']),
+                                  if (!isOrganizer) ...[
+                                    const SizedBox(height: 20),
+                                    _buildInfoText(
+                                        'Total Bookings', '$totalBookings'),
+                                    _buildInfoText(
+                                        'Total Events', '$totalEvents'),
+                                  ] else ...[
+                                    const SizedBox(height: 20),
+                                    _buildInfoText(
+                                        'Created Events', '$createdEvents'),
+                                    _buildInfoText('Phone', userData['phone']),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: () {
+                              _showUpdateProfileDialog(userData);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4A90E2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 50,
+                                vertical: 15,
+                              ),
+                            ),
+                            child: const Text(
+                              'Update Profile',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          Positioned(
+            top: 50,
+            left: 20,
+            child: IconButton(
+              icon: Icon(Icons.arrow_back, color: textColor),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  Widget _buildInfoText(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          '$label:',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showUpdateProfileDialog(Map<String, dynamic> userData) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final TextEditingController bioController =
-        TextEditingController(text: userData['bio'] ?? '');
-    final TextEditingController phoneController =
-        TextEditingController(text: userData['phone'] ?? '');
-
-    bool isOrganizer = userData['usertype'] == 'Organizer';
-    bool isGoogleSignIn = user?.providerData
-            .any((userInfo) => userInfo.providerId == 'google.com') ??
-        false;
-
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (BuildContext context) {
+        String newBio = userData['bio'] ?? '';
         return AlertDialog(
-          backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
-          title: Text(
-            isOrganizer ? 'Update Profile' : 'Update Bio',
-            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: bioController,
-                  decoration: InputDecoration(
-                    labelText: 'Bio',
-                    labelStyle: TextStyle(
-                        color: isDarkMode ? Colors.white70 : Colors.black54),
-                  ),
-                  maxLines: 3,
-                  style: TextStyle(
-                      color: isDarkMode ? Colors.white : Colors.black),
-                ),
-                if (isOrganizer)
-                  TextField(
-                    controller: phoneController,
-                    decoration: InputDecoration(
-                      labelText: 'Phone Number',
-                      labelStyle: TextStyle(
-                          color: isDarkMode ? Colors.white70 : Colors.black54),
-                    ),
-                    keyboardType: TextInputType.phone,
-                    style: TextStyle(
-                        color: isDarkMode ? Colors.white : Colors.black),
-                  ),
-              ],
+          title: const Text('Update Bio'),
+          content: TextField(
+            onChanged: (value) {
+              newBio = value;
+            },
+            controller: TextEditingController(text: newBio),
+            decoration: const InputDecoration(
+              hintText: 'Enter your new bio',
             ),
+            maxLines: 5,
           ),
-          actions: [
+          actions: <Widget>[
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  Map<String, dynamic> updateData = {
-                    'bio': bioController.text.trim(),
-                  };
-
-                  if (isOrganizer) {
-                    updateData['phone'] = phoneController.text.trim();
-                  }
-
-                  await allUsers.doc(user?.uid).update(updateData);
+            TextButton(
+              child: const Text('Update'),
+              onPressed: () {
+                allUsers.doc(user?.uid).update({'bio': newBio}).then((_) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Profile updated successfully')),
+                      content: Text('Profile updated successfully'),
+                    ),
                   );
-                } catch (e) {
-                  print('Error updating profile: $e');
+                }).catchError((error) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to update profile')),
+                    SnackBar(
+                      content: Text('Failed to update profile: $error'),
+                    ),
                   );
-                }
+                });
               },
-              child: const Text('Update'),
             ),
           ],
         );

@@ -52,21 +52,15 @@ class _MapPageState extends ConsumerState<MapPage> {
           "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
       subdomains: const ['a', 'b', 'c'],
       userAgentPackageName: 'com.example.xploverse',
-      tileProvider: NetworkTileProvider(),
-      keepBuffer: 20,
     ),
     'OpenStreetMap': TileLayer(
       urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       userAgentPackageName: 'com.example.xploverse',
-      tileProvider: NetworkTileProvider(),
-      keepBuffer: 20,
     ),
     'Esri World Imagery': TileLayer(
       urlTemplate:
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       userAgentPackageName: 'com.example.xploverse',
-      tileProvider: NetworkTileProvider(),
-      keepBuffer: 20,
     ),
   };
 
@@ -279,8 +273,6 @@ class _MapPageState extends ConsumerState<MapPage> {
           : "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
       subdomains: const ['a', 'b', 'c'],
       userAgentPackageName: 'com.example.xploverse',
-      tileProvider: NetworkTileProvider(),
-      keepBuffer: 20,
     );
 
     return Scaffold(
@@ -293,7 +285,7 @@ class _MapPageState extends ConsumerState<MapPage> {
               initialZoom: 15.0, // Limit zoom out
               minZoom: 9.0,
               interactionOptions: InteractionOptions(
-                flags: InteractiveFlag.all,
+                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
               ),
             ),
             children: [

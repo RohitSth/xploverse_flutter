@@ -162,6 +162,9 @@ class _EventsManagementState extends State<EventsManagement> {
   }
 
   Future<void> _deleteEvent(String eventId) async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       // Delete images from storage
       final storageRef =
@@ -175,9 +178,16 @@ class _EventsManagementState extends State<EventsManagement> {
       await allEvents.doc(eventId).delete();
 
       _showSnackBar('Event deleted successfully');
+
+      // Trigger a rebuild of the widget
+      setState(() {});
     } catch (e) {
       print('Error deleting event: $e');
       _showSnackBar('Error deleting event: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -293,6 +303,8 @@ class _EventsManagementState extends State<EventsManagement> {
       });
     }
   }
+
+  void _showMoreInfo({String? eventId}) async {}
 
   void _showEventDialog({String? eventId}) async {
     _currentEventId = eventId;
@@ -504,72 +516,92 @@ class _EventsManagementState extends State<EventsManagement> {
       appBar: AppBar(
         title: const Text('Manage Events'),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: allEvents
-            .where('organizerId', isEqualTo: _organizerUid)
-            .snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-          if (streamSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (streamSnapshot.hasError) {
-            return Center(child: Text('Error: ${streamSnapshot.error}'));
-          }
-          if (!streamSnapshot.hasData || streamSnapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No events found'));
-          }
-          return ListView.builder(
-            itemCount: streamSnapshot.data!.docs.length,
-            itemBuilder: (context, index) {
-              final DocumentSnapshot documentSnapshot =
-                  streamSnapshot.data!.docs[index];
-              return Card(
-                elevation: 2,
-                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                child: ListTile(
-                  title: Text(
-                    documentSnapshot['title'],
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    DateFormat('yyyy-MM-dd')
-                        .format(DateTime.parse(documentSnapshot['startDate'])),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        color: Colors.blue,
-                        onPressed: () =>
-                            _showEventDialog(eventId: documentSnapshot.id),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        color: Colors.red,
-                        onPressed: () =>
-                            _showDeleteConfirmation(documentSnapshot.id),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : FutureBuilder<List<Widget>>(
+              future: _buildEventCards(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No events found'));
+                }
+                return ListView(
+                  children: snapshot.data!,
+                );
+              },
+            ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(
-            bottom: 96.0), // Adjust the value for desired height
+        padding: const EdgeInsets.only(bottom: 96.0),
         child: FloatingActionButton(
           backgroundColor: const Color.fromARGB(100, 10, 123, 158),
           onPressed: () => _showEventDialog(),
-          child: const Icon(
-            Icons.add,
-          ),
+          child: const Icon(Icons.add),
         ),
       ),
     );
+  }
+
+  Future<List<Widget>> _buildEventCards() async {
+    final QuerySnapshot streamSnapshot =
+        await allEvents.where('organizerId', isEqualTo: _organizerUid).get();
+
+    List<Widget> eventCards = [];
+    for (final DocumentSnapshot documentSnapshot in streamSnapshot.docs) {
+      final String eventId = documentSnapshot.id;
+
+      // Retrieve the total number of bookings for the current event
+      int totalBookings = 0;
+      QuerySnapshot bookingSnapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('eventId', isEqualTo: eventId)
+          .get();
+      totalBookings = bookingSnapshot.docs.length;
+
+      eventCards.add(
+        Card(
+          elevation: 2,
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: ListTile(
+            title: Text(
+              documentSnapshot['title'],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  DateFormat('yyyy-MM-dd')
+                      .format(DateTime.parse(documentSnapshot['startDate'])),
+                ),
+                const SizedBox(height: 4),
+                Text('Total Bookings: $totalBookings'),
+              ],
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  color: Colors.blue,
+                  onPressed: () => _showEventDialog(eventId: eventId),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  color: Colors.red,
+                  onPressed: () => _showDeleteConfirmation(eventId),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    return eventCards;
   }
 
   void _showDeleteConfirmation(String eventId) {
