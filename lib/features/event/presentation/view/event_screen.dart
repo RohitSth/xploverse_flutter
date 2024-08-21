@@ -218,7 +218,7 @@ class EventsScreen extends ConsumerWidget {
                     _bookEvent(context, eventId, eventData, ticketQuantity);
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Book'),
+                  child: Text('Book $ticketQuantity Ticket(s)'),
                 ),
               ],
             );
@@ -334,20 +334,58 @@ class EventsScreen extends ConsumerWidget {
   }
 
   void _bookEvent(BuildContext context, String eventId,
-      Map<String, dynamic> eventData, int ticketQuantity) {
+      Map<String, dynamic> eventData, int ticketQuantity) async {
     // Handle the event booking logic here
     final user = FirebaseAuth.instance.currentUser;
 
-    // Book the event and generate a ticket for the user
-    final bookingData = {
-      'userId': user?.uid,
-      'eventId': eventId,
-      'quantity': ticketQuantity,
-      'bookingDate': DateTime.now().toString(),
-      // Additional booking details...
-    };
+    if (user == null) {
+      _showSnackBar(context, 'Please log in to book an event');
+      return;
+    }
 
-    FirebaseFirestore.instance.collection('bookings').add(bookingData);
+    final maxParticipants = eventData['maxParticipants'] ?? 0;
+    final bookingCount = await _getBookingCount(eventId);
+
+    if (bookingCount + ticketQuantity > maxParticipants) {
+      _showSnackBar(context, 'Not enough tickets available');
+      return;
+    }
+
+    try {
+      for (int i = 0; i < ticketQuantity; i++) {
+        await FirebaseFirestore.instance.collection('bookings').add({
+          'userId': user.uid,
+          'eventId': eventId,
+          'eventTitle': eventData['title'],
+          'eventDate': eventData['startDate'],
+          'bookingDate': FieldValue.serverTimestamp(),
+        });
+      }
+      _showSnackBar(context, '$ticketQuantity ticket(s) booked successfully');
+    } catch (e) {
+      _showSnackBar(context, 'Error booking event: $e');
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<int> _getBookingCount(String eventId) async {
+    final bookingCountSnapshot = await FirebaseFirestore.instance
+        .collection('bookings')
+        .where('eventId', isEqualTo: eventId)
+        .get();
+    return bookingCountSnapshot.docs.length;
+  }
+
+  String _formatDateRange(String? startDateString, String? endDateString) {
+    if (startDateString == null || endDateString == null) return '';
+    final startDate = DateTime.parse(startDateString);
+    final endDate = DateTime.parse(endDateString);
+    final formatter = DateFormat('MMM d, y');
+    return '${formatter.format(startDate)} - ${formatter.format(endDate)}';
   }
 
   Widget _buildInfoRow(IconData icon, String text, bool isDarkMode) {
@@ -368,17 +406,5 @@ class EventsScreen extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  String _formatDateRange(String startDate, String endDate) {
-    final DateFormat formatter = DateFormat('MMM dd, yyyy');
-    final DateTime start = DateTime.parse(startDate);
-    final DateTime end = DateTime.parse(endDate);
-
-    if (start.year == end.year && start.month == end.month) {
-      return '${formatter.format(start)} - ${DateFormat('dd, yyyy').format(end)}';
-    } else {
-      return '${formatter.format(start)} - ${formatter.format(end)}';
-    }
   }
 }

@@ -189,8 +189,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDarkMode
-                    ? [const Color(0xFF1E1E1E), const Color(0xFF323232)]
-                    : [const Color(0xFF4A90E2), const Color(0xFF50E3C2)],
+                    ? [
+                        const Color.fromARGB(255, 0, 0, 0),
+                        const Color.fromARGB(255, 0, 38, 82)
+                      ]
+                    : [
+                        const Color(0xFF4A90E2),
+                        const Color.fromARGB(255, 0, 38, 82)
+                      ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -347,8 +353,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _showUpdateProfileDialog(userData);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 255, 255, 255),
+                              backgroundColor: isDarkMode
+                                  ? const Color.fromARGB(255, 0, 0, 0)
+                                  : const Color.fromARGB(255, 255, 255, 255),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
