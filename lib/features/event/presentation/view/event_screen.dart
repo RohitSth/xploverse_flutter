@@ -121,72 +121,73 @@ class EventsScreen extends ConsumerWidget {
 
   Widget _buildEventCard(BuildContext context, Map<String, dynamic> eventData,
       String eventId, bool isDarkMode) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () =>
-            _showEventDetailsPopup(context, eventData, eventId, isDarkMode),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: () =>
+          _showEventDetailsPopup(context, eventData, eventId, isDarkMode),
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Stack(
           children: [
-            if (eventData['images'] != null && eventData['images'].isNotEmpty)
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  eventData['images'][0],
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
+            // Main content of the card
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (eventData['images'] != null &&
+                    eventData['images'].isNotEmpty)
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: Image.network(
+                      eventData['images'][0],
+                      height: 120,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        eventData['title'] ?? '',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: isDarkMode ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      _buildInfoRow(
+                          Icons.calendar_today,
+                          _formatDateRange(
+                              eventData['startDate'], eventData['endDate']),
+                          isDarkMode),
+                      const SizedBox(height: 4),
+                      _buildInfoRow(Icons.location_on,
+                          eventData['address'] ?? '', isDarkMode),
+                      const SizedBox(height: 4),
+                      _buildInfoRow(Icons.attach_money,
+                          '${eventData['ticketPrice'] ?? 'N/A'}', isDarkMode),
+                    ],
+                  ),
                 ),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    eventData['title'] ?? '',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: isDarkMode ? Colors.white : Colors.black87,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  _buildInfoRow(
-                      Icons.calendar_today,
-                      _formatDateRange(
-                          eventData['startDate'], eventData['endDate']),
-                      isDarkMode),
-                  const SizedBox(height: 4),
-                  _buildInfoRow(Icons.location_on, eventData['address'] ?? '',
-                      isDarkMode),
-                  const SizedBox(height: 4),
-                  _buildInfoRow(Icons.attach_money,
-                      '${eventData['ticketPrice'] ?? 'N/A'}', isDarkMode),
-                ],
-              ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () =>
-                        _showBookingDialog(context, eventId, eventData),
-                    icon: const Icon(Icons.bookmark_add_outlined),
-                    label: const Text('Book'),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                    ),
-                  ),
-                ],
+            // Positioned "Book" button
+            Positioned(
+              top: 0,
+              right: -4,
+              child: IconButton(
+                icon: Icon(
+                  Icons.bookmark_add_outlined,
+                  color: isDarkMode ? Colors.blue : Colors.black,
+                ),
+                onPressed: () =>
+                    _showBookingDialog(context, eventId, eventData),
               ),
             ),
           ],
