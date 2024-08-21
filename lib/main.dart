@@ -37,11 +37,13 @@ Future<void> requestPermissions() async {
     Permission.storage,
   ].request();
 
-  statuses.forEach((permission, status) {
-    if (!status.isGranted) {
-      print('${permission.toString()} permission is not granted');
-    }
-  });
+  // Check if storage permission is granted
+  if (statuses[Permission.storage] != PermissionStatus.granted) {
+    // Handle the case where permission is not granted (e.g., show a message or disable functionality)
+    print('Storage permission is not granted.');
+  } else {
+    print('Storage permission granted.');
+  }
 }
 
 class MyApp extends StatelessWidget {

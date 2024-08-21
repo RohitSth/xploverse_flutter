@@ -67,6 +67,8 @@ dependencies:
   carousel_slider: ^5.0.0
   path_provider: ^2.1.4
   device_info_plus: ^10.1.2
+  pdf: ^3.11.1
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

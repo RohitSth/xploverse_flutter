@@ -1,12 +1,13 @@
 import 'dart:io';
 
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
+import 'package:pdf/widgets.dart' as pw;
 
 class ProfileDashboard extends StatelessWidget {
   const ProfileDashboard({Key? key}) : super(key: key);
@@ -99,7 +100,6 @@ class ProfileDashboard extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          shadowColor: Colors.grey.withOpacity(0.5), // Subtle shadow effect
           child: InkWell(
             onTap: () => _showTicketQRCodes(context, bookings, eventData),
             borderRadius:
@@ -223,13 +223,13 @@ class ProfileDashboard extends StatelessWidget {
                     ),
                     Expanded(
                       child: combineTickets
-                          ? _buildCombinedQRCode(bookings)
-                          : _buildIndividualQRCodes(bookings),
+                          ? _buildCombinedTicketInvoice(bookings, eventData)
+                          : _buildIndividualTicketInvoices(bookings, eventData),
                     ),
                     ElevatedButton(
-                      onPressed: () => _downloadQRCodes(
+                      onPressed: () => _downloadTicketPDF(
                           context, bookings, eventData, combineTickets),
-                      child: const Text('Download QR Code(s)'),
+                      child: const Text('Download Ticket PDF'),
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton(
@@ -246,107 +246,147 @@ class ProfileDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildCombinedQRCode(List<DocumentSnapshot> bookings) {
-    final combinedData = bookings.map((b) => b.id).join(',');
-    return Column(
-      children: [
-        QrImageView(
-          data: combinedData,
-          version: QrVersions.auto,
-          size: 200.0,
-          gapless: false,
-        ),
-        const Text('Combined Ticket QR Code'),
-      ],
+  Widget _buildCombinedTicketInvoice(
+      List<DocumentSnapshot> bookings, Map<String, dynamic> eventData) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildTicketInvoice(bookings, eventData, combined: true),
+          const SizedBox(height: 16),
+          QrImageView(
+            data: bookings.map((b) => b.id).join(','),
+            version: QrVersions.auto,
+            size: 150.0,
+            gapless: false,
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildIndividualQRCodes(List<DocumentSnapshot> bookings) {
+  Widget _buildIndividualTicketInvoices(
+      List<DocumentSnapshot> bookings, Map<String, dynamic> eventData) {
     return ListView.builder(
       itemCount: bookings.length,
       itemBuilder: (context, index) {
-        final bookingId = bookings[index].id;
         return Column(
           children: [
+            _buildTicketInvoice([bookings[index]], eventData),
+            const SizedBox(height: 16),
             QrImageView(
-              data: bookingId,
+              data: bookings[index].id,
               version: QrVersions.auto,
-              size: 200.0,
+              size: 150.0,
               gapless: false,
             ),
-            Text('Ticket ${index + 1}'),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
           ],
         );
       },
     );
   }
 
-  Future<void> _downloadQRCodes(
+  Widget _buildTicketInvoice(
+      List<DocumentSnapshot> bookings, Map<String, dynamic> eventData,
+      {bool combined = false}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            eventData['title'] ?? 'Event',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text('Date: ${_formatDate(eventData['startDate'])}'),
+          Text('Venue: ${eventData['venue'] ?? 'N/A'}'),
+          const SizedBox(height: 8),
+          Text('Tickets: ${combined ? bookings.length : 1}'),
+          Text('Booking ID: ${combined ? 'Multiple' : bookings.first.id}'),
+          const SizedBox(height: 8),
+          Text('Total Price: \$${_calculateTotalPrice(bookings)}'),
+        ],
+      ),
+    );
+  }
+
+  String _calculateTotalPrice(List<DocumentSnapshot> bookings) {
+    double total = 0;
+    for (var booking in bookings) {
+      total += (booking.data() as Map<String, dynamic>)['price'] ?? 0;
+    }
+    return total.toStringAsFixed(2);
+  }
+
+  Future<void> _downloadTicketPDF(
       BuildContext context,
       List<DocumentSnapshot> bookings,
       Map<String, dynamic> eventData,
       bool combineTickets) async {
-    // Check Android version and request appropriate permission
-    final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    final pdf = pw.Document();
 
-    bool permissionGranted = false;
-
-    if (androidInfo.version.sdkInt >= 30) {
-      // Android 11 (API 30) and above
-      permissionGranted =
-          await Permission.manageExternalStorage.request().isGranted;
-    } else {
-      // Below Android 11
-      permissionGranted = await Permission.storage.request().isGranted;
-    }
-
-    if (!permissionGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Storage permission is required to download QR codes. Please grant permission in app settings.'),
-        ),
-      );
-      // Open app settings so the user can grant the permission
-      await openAppSettings();
-      return;
-    }
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                eventData['title'] ?? 'Event Ticket',
+                style:
+                    pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text('Date: ${_formatDate(eventData['startDate'])}'),
+              pw.Text('Venue: ${eventData['venue'] ?? 'N/A'}'),
+              pw.SizedBox(height: 20),
+              pw.Text('Tickets: ${combineTickets ? bookings.length : 1}'),
+              pw.Text(
+                  'Booking ID: ${combineTickets ? 'Multiple' : bookings.first.id}'),
+              pw.SizedBox(height: 20),
+              pw.Text('Total Price: \$${_calculateTotalPrice(bookings)}'),
+              pw.SizedBox(height: 40),
+              pw.BarcodeWidget(
+                barcode: pw.Barcode.qrCode(),
+                data: combineTickets
+                    ? bookings.map((b) => b.id).join(',')
+                    : bookings.first.id,
+                width: 200,
+                height: 200,
+              ),
+            ],
+          );
+        },
+      ),
+    );
 
     try {
-      // Get the appropriate directory
-      Directory? directory;
-      if (androidInfo.version.sdkInt >= 30) {
-        // For Android 11 and above, use getExternalStorageDirectory
-        directory = await getExternalStorageDirectory();
+      // Request storage permission
+      var status = await Permission.storage.request();
+      if (status.isGranted) {
+        // Get the documents directory
+        final directory =
+            await path_provider.getApplicationDocumentsDirectory();
+        final file = File('${directory.path}/event_ticket.pdf');
+
+        await file.writeAsBytes(await pdf.save());
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('PDF saved to ${file.path}')),
+        );
       } else {
-        // For older versions, you can use getExternalStorageDirectory or another method
-        directory = await getExternalStorageDirectory();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Storage permission denied')),
+        );
       }
-
-      if (directory == null) {
-        throw Exception('Could not access storage directory');
-      }
-
-      // Create a new directory for the event
-      final eventDir = Directory('${directory.path}/EventQRCodes');
-      if (!await eventDir.exists()) {
-        await eventDir.create(recursive: true);
-      }
-
-      // Rest of your QR code generation and saving logic...
-      // (Keep the existing code for generating and saving QR codes)
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'QR code(s) and event information saved to ${eventDir.path}'),
-        ),
-      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving QR codes: $e')),
+        SnackBar(content: Text('Error saving PDF: $e')),
       );
     }
   }

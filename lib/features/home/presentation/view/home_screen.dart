@@ -149,9 +149,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       margin: const EdgeInsets.all(20),
                       height: navBarHeight,
                       decoration: BoxDecoration(
-                        color: _isDarkMode
-                            ? Colors.black.withOpacity(0.2)
-                            : Colors.white.withOpacity(0.2),
                         border: Border.all(
                           color: const Color.fromARGB(255, 10, 123, 158),
                         ),
