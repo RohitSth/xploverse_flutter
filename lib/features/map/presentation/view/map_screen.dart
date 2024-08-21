@@ -32,6 +32,8 @@ class _MapPageState extends ConsumerState<MapPage> {
   bool _showEventsScreen = false;
   bool _showCancelRouteButton = false;
   LatLng? _selectedEventLatLng;
+  bool _showSearchPopup = false;
+  List<String> _searchResults = []; // List to store search results
 
   bool _isMounted = false;
   StreamSubscription<void>? _eventSubscription;
@@ -260,12 +262,14 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 
   Future<void> _search(String query) async {
-    final searchResultLocation = await searchEventLocation(query);
-    if (searchResultLocation != null) {
-      mapController.move(searchResultLocation, 15.0);
-    } else {
-      print('No events found with the given title.');
-    }
+    // Simulate search results
+    // Replace this with your actual search implementation
+    _searchResults =
+        eventNames.values.where((name) => name.contains(query)).toList();
+    // Show the search popup
+    setState(() {
+      _showSearchPopup = true;
+    });
   }
 
   void _cancelRoute() {
@@ -289,132 +293,141 @@ class _MapPageState extends ConsumerState<MapPage> {
     );
 
     return Scaffold(
+      resizeToAvoidBottomInset: false, // Add this line
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: mapController,
-            options: const MapOptions(
-              initialCenter: LatLng(40.7128, -74.0060), // New York City
-              initialZoom: 15.0, // Limit zoom out
-              minZoom: 9.0,
-              interactionOptions: InteractionOptions(
-                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-              ),
-            ),
-            children: [
-              layers[currentLayer]!,
-              CircleLayer(
-                circles: [
-                  if (userLocation != null)
-                    CircleMarker(
-                      point: userLocation!,
-                      radius: 50, // Adjust this value to change the circle size
-                      color: Colors.blue.withOpacity(0.2),
-                    ),
-                ],
-              ),
-              MarkerLayer(
-                markers: [
-                  if (userLocation != null)
-                    Marker(
-                      point: userLocation!,
-                      width: 60,
-                      height: 60,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Beam of Light
-                          CustomPaint(
-                            size: const Size(25, 25),
-                            painter: BeamPainter(direction: _direction),
-                          ),
-                          // User profile picture
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                            child: ClipOval(
-                              child: userProfilePictureUrl != null &&
-                                      userProfilePictureUrl!.isNotEmpty
-                                  ? Image.network(
-                                      userProfilePictureUrl!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return const Icon(Icons.person,
-                                            size: 20);
-                                      },
-                                    )
-                                  : const Icon(Icons.person, size: 20),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ...eventLatLngs.map(
-                    (eventLatLng) => Marker(
-                      point: eventLatLng,
-                      width: 150,
-                      height: 120,
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedEventLatLng = eventLatLng;
-                          });
-                          _getRoute(eventLatLng);
-                        },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 4, horizontal: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(4),
+          // Use a SingleChildScrollView to avoid shifting
+          SingleChildScrollView(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: FlutterMap(
+                mapController: mapController,
+                options: const MapOptions(
+                  initialCenter: LatLng(40.7128, -74.0060), // New York City
+                  initialZoom: 15.0, // Limit zoom out
+                  minZoom: 9.0,
+                  interactionOptions: InteractionOptions(
+                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                  ),
+                ),
+                children: [
+                  layers[currentLayer]!,
+                  CircleLayer(
+                    circles: [
+                      if (userLocation != null)
+                        CircleMarker(
+                          point: userLocation!,
+                          radius:
+                              50, // Adjust this value to change the circle size
+                          color: Colors.blue.withOpacity(0.2),
+                        ),
+                    ],
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      if (userLocation != null)
+                        Marker(
+                          point: userLocation!,
+                          width: 60,
+                          height: 60,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Beam of Light
+                              CustomPaint(
+                                size: const Size(25, 25),
+                                painter: BeamPainter(direction: _direction),
                               ),
-                              child: Text(
-                                eventNames[eventLatLng] ?? '',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                              // User profile picture
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border:
+                                      Border.all(color: Colors.white, width: 2),
+                                ),
+                                child: ClipOval(
+                                  child: userProfilePictureUrl != null &&
+                                          userProfilePictureUrl!.isNotEmpty
+                                      ? Image.network(
+                                          userProfilePictureUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return const Icon(Icons.person,
+                                                size: 20);
+                                          },
+                                        )
+                                      : const Icon(Icons.person, size: 20),
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                      ...eventLatLngs.map(
+                        (eventLatLng) => Marker(
+                          point: eventLatLng,
+                          width: 150,
+                          height: 120,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedEventLatLng = eventLatLng;
+                              });
+                              _getRoute(eventLatLng);
+                            },
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 4, horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    eventNames[eventLatLng] ?? '',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.location_on,
+                                  color: Colors.red,
+                                  size: 40,
+                                ),
+                                if (_selectedEventLatLng == eventLatLng)
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      showEventPopup(context, eventLatLng);
+                                    },
+                                    child: const Text('View More'),
+                                  ),
+                              ],
                             ),
-                            const Icon(
-                              Icons.location_on,
-                              color: Colors.red,
-                              size: 40,
-                            ),
-                            if (_selectedEventLatLng == eventLatLng)
-                              ElevatedButton(
-                                onPressed: () {
-                                  showEventPopup(context, eventLatLng);
-                                },
-                                child: const Text('View More'),
-                              ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
+                  if (_routePoints.isNotEmpty)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: _routePoints,
+                          strokeWidth: 4.0,
+                          color: Colors.blue,
+                        ),
+                      ],
+                    ),
                 ],
               ),
-              if (_routePoints.isNotEmpty)
-                PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: _routePoints,
-                      strokeWidth: 4.0,
-                      color: Colors.blue,
-                    ),
-                  ],
-                ),
-            ],
+            ),
           ),
           // Search Bar
           Positioned(
@@ -498,6 +511,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                             return ListTile(
                               title: Text(
                                 '${event['name']} (${distance.toStringAsFixed(1)} km)',
+                                style: const TextStyle(color: Colors.blue),
                               ),
                               onTap: () {
                                 _getRoute(eventLatLng);
@@ -647,6 +661,107 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
           ),
+          // Search Results Popup
+          if (_showSearchPopup)
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.2, // Middle top
+              left: MediaQuery.of(context).size.width *
+                  0.1, // Center horizontally
+              right: MediaQuery.of(context).size.width *
+                  0.1, // Center horizontally
+              child: AnimatedOpacity(
+                opacity: _showSearchPopup ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _showSearchPopup = false;
+                    });
+                  },
+                  child: Container(
+                    height: MediaQuery.of(context).size.height *
+                        0.35, // Adjusted height
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .cardColor
+                          .withOpacity(0.9), // 90% opaque
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          spreadRadius: 5,
+                          blurRadius: 10,
+                          offset: Offset(0, 5), // Shadow position
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0,
+                              horizontal: 16.0), // Reduced vertical padding
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Search Results',
+                                style: TextStyle(
+                                  fontSize: 20, // Slightly larger text
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () {
+                                  setState(() {
+                                    _showSearchPopup = false;
+                                    _searchResults.clear();
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: _searchResults.length,
+                            itemBuilder: (context, index) {
+                              final eventName = _searchResults[index];
+                              final eventLatLng = eventLatLngs.firstWhere(
+                                  (latLng) => eventNames[latLng] == eventName);
+
+                              return ListTile(
+                                title: Text(
+                                  eventName,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                onTap: () {
+                                  // Hide the search popup
+                                  setState(() {
+                                    _showSearchPopup = false;
+                                    _searchResults.clear();
+                                  });
+
+                                  // Move the map and show the event details
+                                  mapController.move(eventLatLng, 15.0);
+                                  _getRoute(eventLatLng);
+                                  showEventPopup(context, eventLatLng);
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
