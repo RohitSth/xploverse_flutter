@@ -17,9 +17,13 @@ class EventsScreen extends ConsumerWidget {
         backgroundColor: isDarkMode
             ? const Color.fromARGB(255, 0, 0, 0)
             : const Color(0xFF4A90E2),
-        title: const Text(
-          'UPCOMING EVENTS',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Padding(
+          // Add padding to the title
+          padding: EdgeInsets.only(left: 12.0),
+          child: Text(
+            'UPCOMING EVENTS',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
         elevation: 0,
       ),
@@ -39,54 +43,57 @@ class EventsScreen extends ConsumerWidget {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Column(
-          children: [
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('events')
-                    .orderBy('startDate', descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return _buildErrorWidget('Error fetching events');
-                  }
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('events')
+                      .orderBy('startDate', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return _buildErrorWidget('Error fetching events');
+                    }
 
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  final events = snapshot.data!.docs;
-                  final filteredEvents = _filterEvents(events);
+                    final events = snapshot.data!.docs;
+                    final filteredEvents = _filterEvents(events);
 
-                  if (filteredEvents.isEmpty) {
-                    return _buildErrorWidget('No upcoming events found');
-                  }
+                    if (filteredEvents.isEmpty) {
+                      return _buildErrorWidget('No upcoming events found');
+                    }
 
-                  return GridView.builder(
-                    padding: const EdgeInsets.all(8.0),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 8.0,
-                      mainAxisSpacing: 8.0,
-                      childAspectRatio: 0.75,
-                    ),
-                    itemCount: filteredEvents.length,
-                    itemBuilder: (context, index) {
-                      final eventData =
-                          filteredEvents[index].data() as Map<String, dynamic>;
-                      final eventId = filteredEvents[index].id;
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(8.0),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 8.0,
+                        mainAxisSpacing: 8.0,
+                        childAspectRatio: 0.75,
+                      ),
+                      itemCount: filteredEvents.length,
+                      itemBuilder: (context, index) {
+                        final eventData = filteredEvents[index].data()
+                            as Map<String, dynamic>;
+                        final eventId = filteredEvents[index].id;
 
-                      return _buildEventCard(
-                          context, eventData, eventId, isDarkMode);
-                    },
-                  );
-                },
+                        return _buildEventCard(
+                            context, eventData, eventId, isDarkMode);
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 100),
-          ],
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
       ),
     );

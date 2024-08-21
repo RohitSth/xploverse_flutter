@@ -432,10 +432,10 @@ class _MapPageState extends ConsumerState<MapPage> {
           // Search Bar
           Positioned(
             top: 35,
-            left: 0,
-            right: 0,
+            left: 21,
+            right: 21,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 0),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
@@ -529,10 +529,10 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
 
-          // Cancel Route Button
+          // Cancel Route
           Positioned(
-            bottom: 228.0,
-            right: 10.0,
+            bottom: 110.0,
+            right: MediaQuery.of(context).size.width * 0.24,
             child: Visibility(
               // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
@@ -544,6 +544,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                       backgroundColor: isDarkMode
                           ? const Color.fromARGB(100, 10, 123, 158)
                           : const Color.fromARGB(98, 105, 219, 253),
+                      shape: const StadiumBorder(),
                       child: const Icon(
                         Icons.cancel_rounded,
                         color: Colors.red,
@@ -555,8 +556,8 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
           // Layers
           Positioned(
-            bottom: 96,
-            left: 10,
+            bottom: 110,
+            left: 21,
             child: Visibility(
               // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
@@ -564,6 +565,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                 backgroundColor: isDarkMode
                     ? const Color.fromARGB(100, 10, 123, 158)
                     : const Color.fromARGB(98, 105, 219, 253),
+                shape: const StadiumBorder(),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -590,7 +592,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           // Compass
           Positioned(
             top: 100,
-            right: 10,
+            right: 21,
             child: CompassIcon(
               direction: _direction ?? 0,
               isDarkMode: isDarkMode,
@@ -599,8 +601,8 @@ class _MapPageState extends ConsumerState<MapPage> {
 
           // Live location info
           Positioned(
-            top: 90,
-            left: 10,
+            top: 110,
+            left: 21,
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -632,8 +634,8 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
           // Current Location
           Positioned(
-            bottom: 96,
-            right: 10,
+            bottom: 110,
+            right: 21,
             child: Visibility(
               // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
@@ -642,27 +644,33 @@ class _MapPageState extends ConsumerState<MapPage> {
                     ? const Color.fromARGB(100, 10, 123, 158)
                     : const Color.fromARGB(98, 105, 219, 253),
                 onPressed: _moveToCurrentLocation,
+                shape: const StadiumBorder(),
                 child: const Icon(Icons.my_location),
               ),
             ),
           ),
-          // Show Events
           // Add a floating action button to show the EventsScreen
           Positioned(
-            bottom: 162,
-            right: 10,
+            bottom: 110.0,
+            left: 0,
+            right: 0,
             child: Visibility(
               // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
-              child: FloatingActionButton(
-                backgroundColor: isDarkMode
-                    ? const Color.fromARGB(100, 10, 123, 158)
-                    : const Color.fromARGB(98, 105, 219, 253),
-                onPressed: _handleEventsPopUp,
-                child: const Icon(Icons.event),
+              child: Column(
+                children: [
+                  FloatingActionButton(
+                    backgroundColor: isDarkMode
+                        ? const Color.fromARGB(155, 10, 155, 199)
+                        : const Color.fromARGB(98, 105, 219, 253),
+                    onPressed: _handleEventsPopUp,
+                    child: const Icon(Icons.event),
+                  ),
+                ],
               ),
             ),
           ),
+
           // Search Results Popup
           if (_showSearchPopup)
             Positioned(
