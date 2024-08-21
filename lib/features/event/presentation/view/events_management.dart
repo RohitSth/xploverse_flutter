@@ -512,29 +512,57 @@ class _EventsManagementState extends State<EventsManagement> {
 
   @override
   Widget build(BuildContext context) {
+    // Get theme data
+    final ThemeData themeData = Theme.of(context);
+    // Check for dark mode
+    final bool isDarkMode = themeData.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage Events'),
+        backgroundColor: isDarkMode
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : const Color(0xFF4A90E2),
+        title: const Text(
+          'MANAGE EVENTS',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : FutureBuilder<List<Widget>>(
-              future: _buildEventCards(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No events found'));
-                }
-                return ListView(
-                  children: snapshot.data!,
-                );
-              },
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDarkMode
+                ? [
+                    const Color.fromARGB(255, 0, 0, 0),
+                    const Color.fromARGB(255, 0, 38, 82),
+                  ]
+                : [
+                    const Color(0xFF4A90E2),
+                    const Color.fromARGB(255, 0, 38, 82),
+                  ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : FutureBuilder<List<Widget>>(
+                future: _buildEventCards(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No events found'));
+                  }
+                  return ListView(
+                    children: snapshot.data!,
+                  );
+                },
+              ),
+      ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 96.0),
         child: FloatingActionButton(

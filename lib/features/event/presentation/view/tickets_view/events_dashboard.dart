@@ -23,7 +23,7 @@ class ProfileDashboard extends StatelessWidget {
             ? const Color.fromARGB(255, 0, 0, 0)
             : const Color(0xFF4A90E2),
         title: const Text(
-          'My Bookings',
+          'MY BOOKINGS',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),

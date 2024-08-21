@@ -16,7 +16,10 @@ class EventsScreen extends ConsumerWidget {
         backgroundColor: isDarkMode
             ? const Color.fromARGB(255, 0, 0, 0)
             : const Color(0xFF4A90E2),
-        title: const Text('UPCOMING EVENTS'),
+        title: const Text(
+          'UPCOMING EVENTS',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         elevation: 0,
       ),
       body: Stack(
