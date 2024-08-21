@@ -21,7 +21,7 @@ class ProfileDashboard extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: isDarkMode
             ? const Color.fromARGB(255, 0, 0, 0)
-            : const Color(0xFF4A90E2), // Keep app bar color
+            : const Color(0xFF4A90E2),
         title: const Text(
           'My Bookings',
           style: TextStyle(fontWeight: FontWeight.bold),

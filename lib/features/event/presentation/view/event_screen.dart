@@ -13,55 +13,81 @@ class EventsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: isDarkMode
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : const Color(0xFF4A90E2),
         title: const Text('UPCOMING EVENTS'),
         elevation: 0,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('events')
-                  .orderBy('startDate', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return _buildErrorWidget('Error fetching events');
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final events = snapshot.data!.docs;
-                final filteredEvents = _filterEvents(events);
-
-                if (filteredEvents.isEmpty) {
-                  return _buildErrorWidget('No upcoming events found');
-                }
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(8.0),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // Two events per row
-                    crossAxisSpacing: 8.0, // Space between columns
-                    mainAxisSpacing: 8.0, // Space between rows
-                    childAspectRatio: 0.75, // Adjust the height/width ratio
-                  ),
-                  itemCount: filteredEvents.length,
-                  itemBuilder: (context, index) {
-                    final eventData =
-                        filteredEvents[index].data() as Map<String, dynamic>;
-                    final eventId = filteredEvents[index].id;
-
-                    return _buildEventCard(
-                        context, eventData, eventId, isDarkMode);
-                  },
-                );
-              },
+          // Background Gradient
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDarkMode
+                    ? [
+                        const Color.fromARGB(255, 0, 0, 0),
+                        const Color.fromARGB(255, 0, 38, 82),
+                      ]
+                    : [
+                        const Color(0xFF4A90E2),
+                        const Color.fromARGB(255, 0, 38, 82),
+                      ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
           ),
-          SizedBox(height: 100), // Add a 100px gap here
+          Column(
+            children: [
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('events')
+                      .orderBy('startDate', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return _buildErrorWidget('Error fetching events');
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final events = snapshot.data!.docs;
+                    final filteredEvents = _filterEvents(events);
+
+                    if (filteredEvents.isEmpty) {
+                      return _buildErrorWidget('No upcoming events found');
+                    }
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(8.0),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, // Two events per row
+                        crossAxisSpacing: 8.0, // Space between columns
+                        mainAxisSpacing: 8.0, // Space between rows
+                        childAspectRatio: 0.75, // Adjust the height/width ratio
+                      ),
+                      itemCount: filteredEvents.length,
+                      itemBuilder: (context, index) {
+                        final eventData = filteredEvents[index].data()
+                            as Map<String, dynamic>;
+                        final eventId = filteredEvents[index].id;
+
+                        return _buildEventCard(
+                            context, eventData, eventId, isDarkMode);
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 100), // Add a 100px gap here
+            ],
+          ),
         ],
       ),
     );

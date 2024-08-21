@@ -207,9 +207,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         listOfIcons[index],
                                         size: iconSize,
                                         color: index == _currentIndex
-                                            ? (_isDarkMode
-                                                ? Colors.white
-                                                : Colors.black)
+                                            ? Colors.white
                                             : const Color.fromARGB(
                                                 255, 10, 123, 158),
                                       ),

@@ -426,7 +426,9 @@ class _MapPageState extends ConsumerState<MapPage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.black : Colors.white,
+                  color: isDarkMode
+                      ? Colors.black
+                      : const Color.fromARGB(104, 74, 145, 226),
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
