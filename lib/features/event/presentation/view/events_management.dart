@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -537,9 +538,12 @@ class _EventsManagementState extends State<EventsManagement> {
         backgroundColor: isDarkMode
             ? const Color.fromARGB(255, 0, 0, 0)
             : const Color(0xFF4A90E2),
-        title: const Text(
-          'MANAGE EVENTS',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Padding(
+          padding: EdgeInsets.only(left: 12.0),
+          child: Text(
+            'MANAGE EVENTS',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ),
       body: Container(
@@ -561,7 +565,7 @@ class _EventsManagementState extends State<EventsManagement> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : FutureBuilder<List<Widget>>(
-                future: _buildEventCards(),
+                future: _buildEventCards(isDarkMode),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -579,91 +583,125 @@ class _EventsManagementState extends State<EventsManagement> {
               ),
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 76.0),
+        padding: const EdgeInsets.only(bottom: 96.0),
         child: FloatingActionButton(
           backgroundColor: isDarkMode
               ? const Color.fromARGB(100, 10, 123, 158)
               : const Color(0xFF4A90E2),
           onPressed: () => _showEventDialog(),
+          shape: const StadiumBorder(),
           child: const Icon(Icons.add),
         ),
       ),
     );
   }
 
-  Future<List<Widget>> _buildEventCards() async {
+  Future<List<Widget>> _buildEventCards(bool isDarkMode) async {
     final QuerySnapshot streamSnapshot =
         await allEvents.where('organizerId', isEqualTo: _organizerUid).get();
 
-    List<Widget> eventCards = [];
-    for (final DocumentSnapshot documentSnapshot in streamSnapshot.docs) {
+    final List<Widget> eventCards =
+        await Future.wait(streamSnapshot.docs.map((documentSnapshot) async {
       final String eventId = documentSnapshot.id;
 
       // Retrieve the total number of bookings for the current event
-      int totalBookings = 0;
-      QuerySnapshot bookingSnapshot = await FirebaseFirestore.instance
+      final QuerySnapshot bookingSnapshot = await FirebaseFirestore.instance
           .collection('bookings')
           .where('eventId', isEqualTo: eventId)
           .get();
-      totalBookings = bookingSnapshot.docs.length;
+      final int totalBookings = bookingSnapshot.docs.length;
 
-      eventCards.add(
-        Card(
-          elevation: 2,
-          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+            vertical: 8.0, horizontal: 21), // Add vertical spacing
+        child: SizedBox(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: isDarkMode
+                    ? const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFF212121),
+                          Color(0xFF000000)
+                        ], // Blue to Black
+                      )
+                    : const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white,
+                          Color(0xFF4A90E2),
+                        ], // Blue to White
+                      ),
+              ),
+              child: Card(
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                color: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        documentSnapshot['title'],
-                        style: const TextStyle(
-                          color: Colors.lightBlue,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              documentSnapshot['title'],
+                              style: const TextStyle(
+                                color: Colors.lightBlue,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              DateFormat('yyyy-MM-dd').format(DateTime.parse(
+                                  documentSnapshot['startDate'])),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Total Bookings: $totalBookings',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        DateFormat('yyyy-MM-dd').format(
-                            DateTime.parse(documentSnapshot['startDate'])),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Total Bookings: $totalBookings',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      const SizedBox(width: 16),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            color: Colors.blue,
+                            onPressed: () => _showEventDialog(eventId: eventId),
+                          ),
+                          const SizedBox(height: 8),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            color: Colors.red,
+                            onPressed: () => _showDeleteConfirmation(eventId),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 16),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      color: Colors.blue,
-                      onPressed: () => _showEventDialog(eventId: eventId),
-                    ),
-                    const SizedBox(height: 8),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      color: Colors.red,
-                      onPressed: () => _showDeleteConfirmation(eventId),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ),
       );
-    }
+    }).toList());
+
     return eventCards;
   }
 
