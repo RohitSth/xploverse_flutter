@@ -230,8 +230,6 @@ class EventsScreen extends ConsumerWidget {
 
   void _showEventDetailsPopup(BuildContext context,
       Map<String, dynamic> eventData, String eventId, bool isDarkMode) {
-    int ticketQuantity = 1;
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -296,9 +294,6 @@ class EventsScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     _buildInfoRow(Icons.description,
                         eventData['description'] ?? '', isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                        Icons.phone, eventData['contact'] ?? '', isDarkMode),
                     const SizedBox(height: 16),
                     if (eventData['images'] != null &&
                         eventData['images'].isNotEmpty)

@@ -347,7 +347,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _showUpdateProfileDialog(userData);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF4A90E2),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 255, 255, 255),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -369,16 +370,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               );
             },
-          ),
-          Positioned(
-            top: 50,
-            left: 20,
-            child: IconButton(
-              icon: Icon(Icons.arrow_back, color: textColor),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
           ),
         ],
       ),
