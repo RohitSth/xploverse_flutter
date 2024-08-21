@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_xploverse/features/map/domain/use_case/route_api.dart';
@@ -154,10 +155,22 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 
   Future<void> _getUserProfilePicture() async {
-    final url = await getUserProfilePictureUrl();
-    setState(() {
-      userProfilePictureUrl = url;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? photoURL;
+      if (user.photoURL != null) {
+        // User has a profile picture from Google
+        photoURL = user.photoURL;
+      } else {
+        // Fetch from your own database if needed
+        photoURL = await getUserProfilePictureUrl();
+      }
+      if (mounted) {
+        setState(() {
+          userProfilePictureUrl = photoURL;
+        });
+      }
+    }
   }
 
   @override
