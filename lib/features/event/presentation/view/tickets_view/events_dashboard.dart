@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,9 +23,12 @@ class ProfileDashboard extends StatelessWidget {
         backgroundColor: isDarkMode
             ? const Color.fromARGB(255, 0, 0, 0)
             : const Color(0xFF4A90E2),
-        title: const Text(
-          'My Bookings',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Padding(
+          padding: EdgeInsets.only(left: 12.0),
+          child: Text(
+            'MY BOOKINGS',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ),
       body: Stack(
@@ -49,13 +53,13 @@ class ProfileDashboard extends StatelessWidget {
           ),
           user == null
               ? const Center(child: Text('Please log in to view your bookings'))
-              : _buildBookingsList(user.uid),
+              : _buildBookingsList(user.uid, isDarkMode),
         ],
       ),
     );
   }
 
-  Widget _buildBookingsList(String userId) {
+  Widget _buildBookingsList(String userId, bool isDarkMode) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('bookings')
@@ -86,20 +90,23 @@ class ProfileDashboard extends StatelessWidget {
           groupedBookings[eventId]!.add(doc);
         }
 
-        return ListView.builder(
-          itemCount: groupedBookings.length,
-          itemBuilder: (context, index) {
-            final eventId = groupedBookings.keys.elementAt(index);
-            final bookings = groupedBookings[eventId]!;
-            return _buildBookingCard(context, bookings);
-          },
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22.0),
+          child: ListView.builder(
+            itemCount: groupedBookings.length,
+            itemBuilder: (context, index) {
+              final eventId = groupedBookings.keys.elementAt(index);
+              final bookings = groupedBookings[eventId]!;
+              return _buildBookingCard(context, bookings, isDarkMode);
+            },
+          ),
         );
       },
     );
   }
 
   Widget _buildBookingCard(
-      BuildContext context, List<DocumentSnapshot> bookings) {
+      BuildContext context, List<DocumentSnapshot> bookings, bool isDarkMode) {
     final firstBooking = bookings.first.data() as Map<String, dynamic>;
     final eventId = firstBooking['eventId'];
     final ticketCount = bookings.length;
@@ -122,69 +129,90 @@ class ProfileDashboard extends StatelessWidget {
         }
 
         return Card(
-          elevation: 5,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          child: InkWell(
-            onTap: () => _showTicketQRCodes(context, bookings, eventData),
-            borderRadius:
-                BorderRadius.circular(15), // Rounded corners for ripple effect
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildEventImage(eventData),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          eventData['title'] ?? 'No title',
-                          style: const TextStyle(
-                            fontSize: 20, // Slightly larger title font size
-                            fontWeight: FontWeight.bold,
-                          ),
+          elevation: 0, // Remove elevation since we'll use blur
+          child: ClipRRect(
+            // Use ClipRRect to clip the gradient
+            borderRadius: BorderRadius.circular(15),
+            child: BackdropFilter(
+              // Apply a blur effect
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  // Apply gradient
+                  gradient: isDarkMode
+                      ? const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFF212121),
+                            Color(0xFF000000)
+                          ], // Blue to Black
+                        )
+                      : const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white,
+                            Color(0xFF4A90E2),
+                          ], // Blue to White
                         ),
-                        const SizedBox(
-                            height:
-                                8), // Increased spacing for better separation
-                        Text(
-                          'Date: ${_formatDate(eventData['startDate'])}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors
-                                .grey[700], // Subtle color for less emphasis
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tickets: $ticketCount',
-                          style: const TextStyle(
-                            fontSize: 16, // Slightly larger font size
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 79, 155, 218),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: InkWell(
+                  onTap: () => _showTicketQRCodes(context, bookings, eventData),
+                  borderRadius: BorderRadius.circular(15),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.qr_code,
-                          color: Theme.of(context).primaryColor),
-                      const SizedBox(height: 8), // Spacing between icons
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteBooking(context, bookings),
-                        tooltip:
-                            'Delete Booking', // Tooltip for better accessibility
+                      _buildEventImage(eventData),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              eventData['title'] ?? 'No title',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Date: ${_formatDate(eventData['startDate'])}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tickets: $ticketCount',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          Icon(Icons.qr_code,
+                              color: isDarkMode ? Colors.white : Colors.black),
+                          const SizedBox(height: 8),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteBooking(context, bookings),
+                            tooltip: 'Delete Booking',
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -221,50 +249,76 @@ class ProfileDashboard extends StatelessWidget {
       builder: (BuildContext dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Dialog(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      eventData['title'] ?? 'Event Tickets',
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            return Padding(
+              padding:
+                  const EdgeInsets.only(top: 58, left: 0, right: 0, bottom: 96),
+              child: Dialog(
+                insetPadding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width *
+                      0.05, // 5% padding on each side
+                ),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.90, // 90% width
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('Combine tickets:'),
-                        Switch(
-                          value: combineTickets,
-                          onChanged: (value) {
-                            setState(() {
-                              combineTickets = value;
-                            });
-                          },
+                        Text(
+                          eventData['title'] ?? 'Event Tickets',
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Combine Tickets'),
+                            Transform.scale(
+                              scale: 0.8, // Reduce the size of the switch
+                              child: Switch(
+                                value: combineTickets,
+                                onChanged: (value) {
+                                  setState(() {
+                                    combineTickets = value;
+                                  });
+                                },
+                                activeTrackColor:
+                                    const Color.fromARGB(255, 10, 123, 158),
+                                activeColor:
+                                    const Color.fromARGB(255, 255, 255, 255),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Expanded(
+                          child: combineTickets
+                              ? _buildCombinedTicketInvoice(
+                                  dialogContext, bookings, eventData)
+                              : _buildIndividualTicketInvoices(
+                                  dialogContext, bookings, eventData),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () => _downloadTicketPDF(
+                                  context, bookings, eventData, combineTickets),
+                              child: const Text('Download Ticket PDF'),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text(
+                                'Close',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    Expanded(
-                      child: combineTickets
-                          ? _buildCombinedTicketInvoice(
-                              dialogContext, bookings, eventData)
-                          : _buildIndividualTicketInvoices(
-                              dialogContext, bookings, eventData),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => _downloadTicketPDF(
-                          context, bookings, eventData, combineTickets),
-                      child: const Text('Download Ticket PDF'),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Close'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             );
@@ -286,10 +340,10 @@ class ProfileDashboard extends StatelessWidget {
             version: QrVersions.auto,
             size: 200.0,
             gapless: false,
-            // ignore: deprecated_member_use
             foregroundColor: isDarkMode ? Colors.white : Colors.black,
           ),
-          _buildTicketInvoice(bookings, eventData, combined: true),
+          _buildTicketInvoice(bookings, eventData,
+              combined: true, width: MediaQuery.of(context).size.width * 0.90),
           const SizedBox(height: 16),
         ],
       ),
@@ -305,7 +359,8 @@ class ProfileDashboard extends StatelessWidget {
       itemBuilder: (context, index) {
         return Column(
           children: [
-            _buildTicketInvoice([bookings[index]], eventData),
+            _buildTicketInvoice([bookings[index]], eventData,
+                width: MediaQuery.of(context).size.width * 0.90),
             const SizedBox(height: 16),
             QrImageView(
               data: bookings[index].id,
@@ -323,9 +378,10 @@ class ProfileDashboard extends StatelessWidget {
 
   Widget _buildTicketInvoice(
       List<DocumentSnapshot> bookings, Map<String, dynamic> eventData,
-      {bool combined = false}) {
+      {bool combined = false, required double width}) {
     return Container(
       padding: const EdgeInsets.all(16),
+      width: width, // Use the provided width
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey),
         borderRadius: BorderRadius.circular(8),
@@ -344,7 +400,6 @@ class ProfileDashboard extends StatelessWidget {
           Text('Tickets: ${combined ? bookings.length : 1}'),
           Text('Booking ID: ${combined ? 'Multiple' : bookings.first.id}'),
           const SizedBox(height: 8),
-          // Assuming you have a 'price' field in your bookings collection
           Text(
               'Total Price: \$${_calculateTotalPrice(eventData, bookings.length)}'),
         ],

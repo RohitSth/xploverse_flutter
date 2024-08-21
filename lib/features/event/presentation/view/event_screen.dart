@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,30 +19,35 @@ class EventsScreen extends ConsumerWidget {
         backgroundColor: isDarkMode
             ? const Color.fromARGB(255, 0, 0, 0)
             : const Color(0xFF4A90E2),
-        title: const Text('UPCOMING EVENTS'),
+        title: const Padding(
+          // Add padding to the title
+          padding: EdgeInsets.only(left: 12.0),
+          child: Text(
+            'UPCOMING EVENTS',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
         elevation: 0,
       ),
-      body: Stack(
-        children: [
-          // Background Gradient
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDarkMode
-                    ? [
-                        const Color.fromARGB(255, 0, 0, 0),
-                        const Color.fromARGB(255, 0, 38, 82),
-                      ]
-                    : [
-                        const Color(0xFF4A90E2),
-                        const Color.fromARGB(255, 0, 38, 82),
-                      ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDarkMode
+                ? [
+                    const Color.fromARGB(255, 0, 0, 0),
+                    const Color.fromARGB(255, 0, 38, 82),
+                  ]
+                : [
+                    const Color(0xFF4A90E2),
+                    const Color.fromARGB(255, 0, 38, 82),
+                  ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          Column(
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Column(
             children: [
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
@@ -67,10 +75,10 @@ class EventsScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(8.0),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, // Two events per row
-                        crossAxisSpacing: 8.0, // Space between columns
-                        mainAxisSpacing: 8.0, // Space between rows
-                        childAspectRatio: 0.75, // Adjust the height/width ratio
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 8.0,
+                        mainAxisSpacing: 8.0,
+                        childAspectRatio: 0.75,
                       ),
                       itemCount: filteredEvents.length,
                       itemBuilder: (context, index) {
@@ -85,10 +93,10 @@ class EventsScreen extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 100), // Add a 100px gap here
+              const SizedBox(height: 100),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -125,72 +133,107 @@ class EventsScreen extends ConsumerWidget {
       onTap: () =>
           _showEventDetailsPopup(context, eventData, eventId, isDarkMode),
       child: Card(
-        elevation: 3,
+        elevation: 0, // Remove elevation for blur
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Stack(
-          children: [
-            // Main content of the card
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (eventData['images'] != null &&
-                    eventData['images'].isNotEmpty)
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(12)),
-                    child: Image.network(
-                      eventData['images'][0],
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
+        child: ClipRRect(
+          // Use ClipRRect to clip the gradient
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            // Apply a blur effect
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              // Wrap content in a Container
+              decoration: BoxDecoration(
+                // Apply gradient
+                gradient: isDarkMode
+                    ? const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFF212121),
+                          Color(0xFF000000)
+                        ], // Blue to Black
+                      )
+                    : const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFF4A90E2),
+                          Colors.white
+                        ], // Blue to White
+                      ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Stack(
+                children: [
+                  // Main content of the card
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        eventData['title'] ?? '',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: isDarkMode ? Colors.white : Colors.black87,
+                      if (eventData['images'] != null &&
+                          eventData['images'].isNotEmpty)
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(12)),
+                          child: Image.network(
+                            eventData['images'][0],
+                            height: 150, // Adjust height as needed
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              eventData['title'] ?? '',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black87,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            _buildInfoRow(
+                                Icons.calendar_today,
+                                _formatDateRange(eventData['startDate'],
+                                    eventData['endDate']),
+                                isDarkMode),
+                            const SizedBox(height: 4),
+                            _buildInfoRow(Icons.location_on,
+                                eventData['address'] ?? '', isDarkMode),
+                            const SizedBox(height: 4),
+                            _buildInfoRow(
+                                Icons.attach_money,
+                                '${eventData['ticketPrice'] ?? 'N/A'}',
+                                isDarkMode),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      _buildInfoRow(
-                          Icons.calendar_today,
-                          _formatDateRange(
-                              eventData['startDate'], eventData['endDate']),
-                          isDarkMode),
-                      const SizedBox(height: 4),
-                      _buildInfoRow(Icons.location_on,
-                          eventData['address'] ?? '', isDarkMode),
-                      const SizedBox(height: 4),
-                      _buildInfoRow(Icons.attach_money,
-                          '${eventData['ticketPrice'] ?? 'N/A'}', isDarkMode),
                     ],
                   ),
-                ),
-              ],
-            ),
-            // Positioned "Book" button
-            Positioned(
-              top: 0,
-              right: -4,
-              child: IconButton(
-                icon: Icon(
-                  Icons.bookmark_add_outlined,
-                  color: isDarkMode ? Colors.blue : Colors.black,
-                ),
-                onPressed: () =>
-                    _showBookingDialog(context, eventId, eventData),
+                  // Positioned "Book" button
+                  Positioned(
+                    top: 0,
+                    right: -4,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.bookmark_add_outlined,
+                        color: Colors.blue,
+                      ),
+                      onPressed: () =>
+                          _showBookingDialog(context, eventId, eventData),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -263,94 +306,155 @@ class EventsScreen extends ConsumerWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width *
+                    0.05, // 5% padding on each side
               ),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.black : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: const Icon(Icons.close,
-                              color: Colors.red, size: 20),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      eventData['title'] ?? '',
-                      style: TextStyle(
-                          color: isDarkMode ? Colors.white : Colors.black,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      eventData['subtitle'] ?? '',
-                      style: TextStyle(
-                          color: isDarkMode ? Colors.white : Colors.black,
-                          fontSize: 18),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildInfoRow(Icons.location_on, eventData['address'] ?? '',
-                        isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                        Icons.calendar_today,
-                        _formatDateRange(
-                            eventData['startDate'], eventData['endDate']),
-                        isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(Icons.attach_money,
-                        '${eventData['ticketPrice'] ?? ''}', isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                        Icons.people,
-                        '${eventData['maxParticipants'] ?? ''} MAX',
-                        isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(Icons.description,
-                        eventData['description'] ?? '', isDarkMode),
-                    const SizedBox(height: 16),
-                    if (eventData['images'] != null &&
-                        eventData['images'].isNotEmpty)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          eventData['images'][0],
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: SizedBox(
+                // Wrap the content in a SizedBox
+                width: MediaQuery.of(context).size.width * 0.90, // 90% width
+                child: ClipRRect(
+                  // Use ClipRRect to clip the gradient
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    // Apply a blur effect
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        // Apply gradient
+                        gradient: isDarkMode
+                            ? const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color(0xFF212121),
+                                  Color(0xFF000000)
+                                ], // Blue to Black
+                              )
+                            : const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.white,
+                                  Color(0xFF4A90E2),
+                                ], // Blue to White
+                              ),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            _showBookingDialog(context, eventId, eventData);
-                          },
-                          icon: const Icon(Icons.bookmark_add_outlined),
-                          label: const Text('Book Event'),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.of(context).pop(),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                  size: 24,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          Text(
+                            eventData['title'] ?? '',
+                            style: const TextStyle(
+                              color: Colors.blueAccent,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            eventData['description'] ?? '',
+                            style: TextStyle(
+                              color:
+                                  isDarkMode ? Colors.white : Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                          if (eventData['images'] != null &&
+                              eventData['images'].isNotEmpty)
+                            SizedBox(
+                              height: 250,
+                              child: CarouselSlider(
+                                options: CarouselOptions(
+                                  enableInfiniteScroll: false,
+                                  autoPlay: false,
+                                  enlargeCenterPage: true,
+                                  viewportFraction: 0.8,
+                                  aspectRatio: 16 / 9,
+                                  initialPage: 0,
+                                  scrollDirection: Axis.horizontal,
+                                ),
+                                items: (eventData['images'] as List<dynamic>)
+                                    .map((image) {
+                                  return ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      image.toString(),
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          if (eventData['images'] != null &&
+                              eventData['images'].isNotEmpty)
+                            const SizedBox(height: 8),
+                          _buildInfoRow(
+                            Icons.location_on,
+                            eventData['address'] ?? '',
+                            isDarkMode,
+                          ),
+                          const SizedBox(height: 8),
+                          _buildInfoRow(
+                            Icons.calendar_today,
+                            _formatDateRange(
+                              eventData['startDate'],
+                              eventData['endDate'],
+                            ),
+                            isDarkMode,
+                          ),
+                          const SizedBox(height: 8),
+                          _buildInfoRow(
+                            Icons.attach_money,
+                            '${eventData['ticketPrice'] ?? ''}',
+                            isDarkMode,
+                          ),
+                          const SizedBox(height: 8),
+                          _buildInfoRow(
+                            Icons.people,
+                            '${eventData['maxParticipants'] ?? ''} MAX',
+                            isDarkMode,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              _showBookingDialog(context, eventId, eventData);
+                            },
+                            icon: const Icon(Icons.bookmark_add_outlined),
+                            label: const Text('Book Event'),
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 15, 123, 247),
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             );

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -310,6 +311,10 @@ class _EventsManagementState extends State<EventsManagement> {
     _currentEventId = eventId;
     bool isUpdate = eventId != null;
 
+    // Get current theme data for dark mode check
+    final ThemeData themeData = Theme.of(context);
+    final bool isDarkMode = themeData.brightness == Brightness.dark;
+
     if (isUpdate) {
       DocumentSnapshot eventDoc = await allEvents.doc(eventId).get();
       Map<String, dynamic> eventData = eventDoc.data() as Map<String, dynamic>;
@@ -346,58 +351,129 @@ class _EventsManagementState extends State<EventsManagement> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 1),
-          child: AlertDialog(
-            title: Text(isUpdate ? "Update Event" : "Create Event"),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildTextField(titleController, "Title"),
-                  _buildTextField(descriptionController, "Description",
-                      maxLines: 3),
-                  _buildTextField(addressController, "Address"),
-                  _buildTextField(latitudeController, "Latitude",
-                      keyboardType: TextInputType.number),
-                  _buildTextField(longitudeController, "Longitude",
-                      keyboardType: TextInputType.number),
-                  _buildTextField(categoriesController, "Categories"),
-                  _buildImageSection(),
-                  _buildTextField(
-                      maxParticipantsController, "Maximum Participants",
-                      keyboardType: TextInputType.number),
-                  _buildTextField(ticketPriceController, "Ticket Price",
-                      keyboardType: TextInputType.number),
-                  _buildDateField(
-                      _startDateController, 'Start Date', _selectStartDate),
-                  _buildDateField(
-                      _endDateController, 'End Date', _selectEndDate),
-                ],
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: SizedBox(
+            // Use SizedBox to manage the width
+            width: MediaQuery.of(context).size.width * 0.99,
+            child: Container(
+              padding:
+                  const EdgeInsets.only(top: 38, bottom: 72, left: 0, right: 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: isDarkMode
+                        ? const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0xFF212121),
+                              Color(0xFF000000)
+                            ], // Blue to Black
+                          )
+                        : const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.white,
+                              Color(0xFF4A90E2),
+                            ], // Blue to White
+                          ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            isUpdate ? "Update Event" : "Create Event",
+                            style: const TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16.0),
+                          _buildTextField(titleController, "Title"),
+                          _buildTextField(
+                            descriptionController,
+                            "Description",
+                            maxLines: 3,
+                          ),
+                          _buildTextField(addressController, "Address"),
+                          _buildTextField(
+                            latitudeController,
+                            "Latitude",
+                            keyboardType: TextInputType.number,
+                          ),
+                          _buildTextField(
+                            longitudeController,
+                            "Longitude",
+                            keyboardType: TextInputType.number,
+                          ),
+                          _buildTextField(categoriesController, "Categories"),
+                          _buildImageSection(),
+                          _buildTextField(
+                            maxParticipantsController,
+                            "Maximum Participants",
+                            keyboardType: TextInputType.number,
+                          ),
+                          _buildTextField(
+                            ticketPriceController,
+                            "Ticket Price",
+                            keyboardType: TextInputType.number,
+                          ),
+                          _buildDateField(
+                            _startDateController,
+                            'Start Date',
+                            _selectStartDate,
+                          ),
+                          _buildDateField(
+                            _endDateController,
+                            'End Date',
+                            _selectEndDate,
+                          ),
+                          const SizedBox(height: 16.0),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text("Cancel",
+                                    style: TextStyle(color: Colors.red)),
+                              ),
+                              const SizedBox(width: 8.0),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  if (_validateFields()) {
+                                    Navigator.of(context).pop();
+                                    if (isUpdate) {
+                                      await _updateEvent(eventId!);
+                                    } else {
+                                      await _addEvent();
+                                    }
+                                  } else {
+                                    _showSnackBar('Please fill all fields');
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  elevation: 0,
+                                ),
+                                child: Text(isUpdate ? "Update" : "Create",
+                                    style: const TextStyle(color: Colors.blue)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text("Cancel"),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_validateFields()) {
-                    Navigator.of(context).pop();
-                    if (isUpdate) {
-                      await _updateEvent(eventId!);
-                    } else {
-                      await _addEvent();
-                    }
-                  } else {
-                    _showSnackBar('Please fill all fields');
-                  }
-                },
-                child: Text(isUpdate ? "Update" : "Create"),
-              ),
-            ],
           ),
         );
       },
@@ -512,95 +588,180 @@ class _EventsManagementState extends State<EventsManagement> {
 
   @override
   Widget build(BuildContext context) {
+    // Get theme data
+    final ThemeData themeData = Theme.of(context);
+    // Check for dark mode
+    final bool isDarkMode = themeData.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage Events'),
+        backgroundColor: isDarkMode
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : const Color(0xFF4A90E2),
+        title: const Padding(
+          padding: EdgeInsets.only(left: 12.0),
+          child: Text(
+            'MANAGE EVENTS',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : FutureBuilder<List<Widget>>(
-              future: _buildEventCards(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No events found'));
-                }
-                return ListView(
-                  children: snapshot.data!,
-                );
-              },
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDarkMode
+                ? [
+                    const Color.fromARGB(255, 0, 0, 0),
+                    const Color.fromARGB(255, 0, 38, 82),
+                  ]
+                : [
+                    const Color(0xFF4A90E2),
+                    const Color.fromARGB(255, 0, 38, 82),
+                  ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : FutureBuilder<List<Widget>>(
+                future: _buildEventCards(isDarkMode),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No events found'));
+                  }
+                  return ListView(
+                    children: snapshot.data!,
+                  );
+                },
+              ),
+      ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 96.0),
         child: FloatingActionButton(
-          backgroundColor: const Color.fromARGB(100, 10, 123, 158),
+          backgroundColor: isDarkMode
+              ? const Color.fromARGB(100, 10, 123, 158)
+              : const Color(0xFF4A90E2),
           onPressed: () => _showEventDialog(),
+          shape: const StadiumBorder(),
           child: const Icon(Icons.add),
         ),
       ),
     );
   }
 
-  Future<List<Widget>> _buildEventCards() async {
+  Future<List<Widget>> _buildEventCards(bool isDarkMode) async {
     final QuerySnapshot streamSnapshot =
         await allEvents.where('organizerId', isEqualTo: _organizerUid).get();
 
-    List<Widget> eventCards = [];
-    for (final DocumentSnapshot documentSnapshot in streamSnapshot.docs) {
+    final List<Widget> eventCards =
+        await Future.wait(streamSnapshot.docs.map((documentSnapshot) async {
       final String eventId = documentSnapshot.id;
 
       // Retrieve the total number of bookings for the current event
-      int totalBookings = 0;
-      QuerySnapshot bookingSnapshot = await FirebaseFirestore.instance
+      final QuerySnapshot bookingSnapshot = await FirebaseFirestore.instance
           .collection('bookings')
           .where('eventId', isEqualTo: eventId)
           .get();
-      totalBookings = bookingSnapshot.docs.length;
+      final int totalBookings = bookingSnapshot.docs.length;
 
-      eventCards.add(
-        Card(
-          elevation: 2,
-          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          child: ListTile(
-            title: Text(
-              documentSnapshot['title'],
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  DateFormat('yyyy-MM-dd')
-                      .format(DateTime.parse(documentSnapshot['startDate'])),
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+            vertical: 8.0, horizontal: 21), // Add vertical spacing
+        child: SizedBox(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: isDarkMode
+                    ? const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFF212121),
+                          Color(0xFF000000)
+                        ], // Blue to Black
+                      )
+                    : const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white,
+                          Color(0xFF4A90E2),
+                        ], // Blue to White
+                      ),
+              ),
+              child: Card(
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                color: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
                 ),
-                const SizedBox(height: 4),
-                Text('Total Bookings: $totalBookings'),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  color: Colors.blue,
-                  onPressed: () => _showEventDialog(eventId: eventId),
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              documentSnapshot['title'],
+                              style: const TextStyle(
+                                color: Colors.lightBlue,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              DateFormat('yyyy-MM-dd').format(DateTime.parse(
+                                  documentSnapshot['startDate'])),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Total Bookings: $totalBookings',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            color: Colors.blue,
+                            onPressed: () => _showEventDialog(eventId: eventId),
+                          ),
+                          const SizedBox(height: 8),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            color: Colors.red,
+                            onPressed: () => _showDeleteConfirmation(eventId),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  color: Colors.red,
-                  onPressed: () => _showDeleteConfirmation(eventId),
-                ),
-              ],
+              ),
             ),
           ),
         ),
       );
-    }
+    }).toList());
+
     return eventCards;
   }
 
@@ -617,12 +778,12 @@ class _EventsManagementState extends State<EventsManagement> {
               onPressed: () => Navigator.of(context).pop(),
             ),
             ElevatedButton(
-              child: const Text("Delete"),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
                 Navigator.of(context).pop();
                 _deleteEvent(eventId);
               },
+              child: const Text("Delete"),
             ),
           ],
         );
