@@ -515,6 +515,8 @@ class _MapPageState extends ConsumerState<MapPage> {
                               ),
                               onTap: () {
                                 _getRoute(eventLatLng);
+                                // Move the map and show the event details
+                                mapController.move(eventLatLng, 15.0);
                                 showEventPopup(context, eventLatLng);
                               },
                             );
