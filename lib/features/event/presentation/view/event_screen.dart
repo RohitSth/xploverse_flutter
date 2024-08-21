@@ -23,59 +23,71 @@ class EventsScreen extends ConsumerWidget {
         ),
         elevation: 0,
       ),
-      body: Stack(
-        children: [
-          // Background Gradient
-          Column(
-            children: [
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('events')
-                      .orderBy('startDate', descending: true)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return _buildErrorWidget('Error fetching events');
-                    }
-
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    final events = snapshot.data!.docs;
-                    final filteredEvents = _filterEvents(events);
-
-                    if (filteredEvents.isEmpty) {
-                      return _buildErrorWidget('No upcoming events found');
-                    }
-
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(8.0),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 8.0,
-                        mainAxisSpacing: 8.0,
-                        childAspectRatio: 0.75,
-                      ),
-                      itemCount: filteredEvents.length,
-                      itemBuilder: (context, index) {
-                        final eventData = filteredEvents[index].data()
-                            as Map<String, dynamic>;
-                        final eventId = filteredEvents[index].id;
-
-                        return _buildEventCard(
-                            context, eventData, eventId, isDarkMode);
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 100),
-            ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDarkMode
+                ? [
+                    const Color.fromARGB(255, 0, 0, 0),
+                    const Color.fromARGB(255, 0, 38, 82),
+                  ]
+                : [
+                    const Color(0xFF4A90E2),
+                    const Color.fromARGB(255, 0, 38, 82),
+                  ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-        ],
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('events')
+                    .orderBy('startDate', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return _buildErrorWidget('Error fetching events');
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final events = snapshot.data!.docs;
+                  final filteredEvents = _filterEvents(events);
+
+                  if (filteredEvents.isEmpty) {
+                    return _buildErrorWidget('No upcoming events found');
+                  }
+
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(8.0),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 8.0,
+                      mainAxisSpacing: 8.0,
+                      childAspectRatio: 0.75,
+                    ),
+                    itemCount: filteredEvents.length,
+                    itemBuilder: (context, index) {
+                      final eventData =
+                          filteredEvents[index].data() as Map<String, dynamic>;
+                      final eventId = filteredEvents[index].id;
+
+                      return _buildEventCard(
+                          context, eventData, eventId, isDarkMode);
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 100),
+          ],
+        ),
       ),
     );
   }
