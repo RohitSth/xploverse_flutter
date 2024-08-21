@@ -33,6 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   final _bookingStream = BehaviorSubject<int>();
   final _createdEventStream = BehaviorSubject<int>();
+  final _bookedEventStream = BehaviorSubject<int>();
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     _bookingStream.close();
     _createdEventStream.close();
+    _bookedEventStream.close();
     super.dispose();
   }
 
@@ -59,6 +61,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _createdEventStream.listen((value) {
       setState(() {
         createdEvents = value;
+      });
+    });
+
+    // Listener for booked event changes
+    _bookedEventStream.listen((value) {
+      setState(() {
+        totalEvents = value;
       });
     });
 
@@ -78,20 +87,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Only emit the event if the number of bookings changes
         if (snapshot.docs.length != totalBookings) {
           _bookingStream.add(snapshot.docs.length);
-          _updateTotalEvents(snapshot.docs);
+
+          // Update the unique booked events count
+          _bookedEventStream
+              .add(snapshot.docs.map((doc) => doc['eventId']).toSet().length);
         }
       });
     } catch (e) {
       print("Failed to retrieve booking information: $e");
-    }
-  }
-
-  void _updateTotalEvents(List<QueryDocumentSnapshot> bookings) {
-    // Get the unique event IDs from the bookings
-    Set eventIds = bookings.map((doc) => doc['eventId']).toSet();
-    // Only emit the event if the number of events changes
-    if (eventIds.length != totalEvents) {
-      _createdEventStream.add(eventIds.length);
     }
   }
 
@@ -327,7 +330,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     _buildInfoText(
                                         'Total Bookings', '$totalBookings'),
                                     _buildInfoText(
-                                        'Total Events', '$totalEvents'),
+                                        'Total Booked Events', '$totalEvents'),
                                   ] else ...[
                                     const SizedBox(height: 20),
                                     _buildInfoText(
