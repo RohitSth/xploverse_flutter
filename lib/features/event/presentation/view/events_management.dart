@@ -311,6 +311,10 @@ class _EventsManagementState extends State<EventsManagement> {
     _currentEventId = eventId;
     bool isUpdate = eventId != null;
 
+    // Get current theme data for dark mode check
+    final ThemeData themeData = Theme.of(context);
+    final bool isDarkMode = themeData.brightness == Brightness.dark;
+
     if (isUpdate) {
       DocumentSnapshot eventDoc = await allEvents.doc(eventId).get();
       Map<String, dynamic> eventData = eventDoc.data() as Map<String, dynamic>;
@@ -348,70 +352,124 @@ class _EventsManagementState extends State<EventsManagement> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    isUpdate ? "Update Event" : "Create Event",
-                    style: const TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            width: MediaQuery.of(context).size.width *
+                0.9, // Set width directly here
+            padding:
+                const EdgeInsets.only(top: 38, bottom: 72, left: 0, right: 0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: isDarkMode
+                      ? const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFF212121),
+                            Color(0xFF000000)
+                          ], // Blue to Black
+                        )
+                      : const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white,
+                            Color(0xFF4A90E2),
+                          ], // Blue to White
+                        ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          isUpdate ? "Update Event" : "Create Event",
+                          style: const TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        _buildTextField(titleController, "Title"),
+                        _buildTextField(
+                          descriptionController,
+                          "Description",
+                          maxLines: 3,
+                        ),
+                        _buildTextField(addressController, "Address"),
+                        _buildTextField(
+                          latitudeController,
+                          "Latitude",
+                          keyboardType: TextInputType.number,
+                        ),
+                        _buildTextField(
+                          longitudeController,
+                          "Longitude",
+                          keyboardType: TextInputType.number,
+                        ),
+                        _buildTextField(categoriesController, "Categories"),
+                        _buildImageSection(),
+                        _buildTextField(
+                          maxParticipantsController,
+                          "Maximum Participants",
+                          keyboardType: TextInputType.number,
+                        ),
+                        _buildTextField(
+                          ticketPriceController,
+                          "Ticket Price",
+                          keyboardType: TextInputType.number,
+                        ),
+                        _buildDateField(
+                          _startDateController,
+                          'Start Date',
+                          _selectStartDate,
+                        ),
+                        _buildDateField(
+                          _endDateController,
+                          'End Date',
+                          _selectEndDate,
+                        ),
+                        const SizedBox(height: 16.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text("Cancel",
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                            const SizedBox(width: 8.0),
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (_validateFields()) {
+                                  Navigator.of(context).pop();
+                                  if (isUpdate) {
+                                    await _updateEvent(eventId!);
+                                  } else {
+                                    await _addEvent();
+                                  }
+                                } else {
+                                  _showSnackBar('Please fill all fields');
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
+                              ),
+                              child: Text(isUpdate ? "Update" : "Create",
+                                  style: const TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16.0),
-                  _buildTextField(titleController, "Title"),
-                  _buildTextField(descriptionController, "Description",
-                      maxLines: 3),
-                  _buildTextField(addressController, "Address"),
-                  _buildTextField(latitudeController, "Latitude",
-                      keyboardType: TextInputType.number),
-                  _buildTextField(longitudeController, "Longitude",
-                      keyboardType: TextInputType.number),
-                  _buildTextField(categoriesController, "Categories"),
-                  _buildImageSection(),
-                  _buildTextField(
-                      maxParticipantsController, "Maximum Participants",
-                      keyboardType: TextInputType.number),
-                  _buildTextField(ticketPriceController, "Ticket Price",
-                      keyboardType: TextInputType.number),
-                  _buildDateField(
-                      _startDateController, 'Start Date', _selectStartDate),
-                  _buildDateField(
-                      _endDateController, 'End Date', _selectEndDate),
-                  const SizedBox(height: 16.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text("Cancel"),
-                      ),
-                      const SizedBox(width: 8.0),
-                      ElevatedButton(
-                        onPressed: () async {
-                          if (_validateFields()) {
-                            Navigator.of(context).pop();
-                            if (isUpdate) {
-                              await _updateEvent(eventId!);
-                            } else {
-                              await _addEvent();
-                            }
-                          } else {
-                            _showSnackBar('Please fill all fields');
-                          }
-                        },
-                        child: Text(isUpdate ? "Update" : "Create"),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -718,12 +776,12 @@ class _EventsManagementState extends State<EventsManagement> {
               onPressed: () => Navigator.of(context).pop(),
             ),
             ElevatedButton(
-              child: const Text("Delete"),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
                 Navigator.of(context).pop();
                 _deleteEvent(eventId);
               },
+              child: const Text("Delete"),
             ),
           ],
         );
