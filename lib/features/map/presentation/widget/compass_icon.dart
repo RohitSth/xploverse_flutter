@@ -22,7 +22,7 @@ class CompassIcon extends StatelessWidget {
       child: Transform.rotate(
         angle: direction * (math.pi / 180) * -1,
         child: const Icon(
-          Icons.navigation_rounded, // This is the compass icon
+          Icons.navigation_sharp, // This is the compass icon
           size: 30,
           color: Colors.red, // Set the color to red for the needle
         ),

@@ -339,24 +339,24 @@ class ProfileDashboard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text('Date: ${_formatDate(eventData['startDate'])}'),
-          Text('Venue: ${eventData['venue'] ?? 'N/A'}'),
+          Text('Venue: ${eventData['address'] ?? 'N/A'}'),
           const SizedBox(height: 8),
           Text('Tickets: ${combined ? bookings.length : 1}'),
           Text('Booking ID: ${combined ? 'Multiple' : bookings.first.id}'),
           const SizedBox(height: 8),
           // Assuming you have a 'price' field in your bookings collection
-          Text('Total Price: \$${_calculateTotalPrice(bookings)}'),
+          Text(
+              'Total Price: \$${_calculateTotalPrice(eventData, bookings.length)}'),
         ],
       ),
     );
   }
 
-  String _calculateTotalPrice(List<DocumentSnapshot> bookings) {
+  String _calculateTotalPrice(Map<String, dynamic> eventData, int ticketCount) {
     double total = 0;
-    for (var booking in bookings) {
-      final bookingData = booking.data() as Map<String, dynamic>;
-      total += bookingData['price'] ?? 0; // Access 'price' from each booking
-    }
+    // Assuming 'ticketPrice' is stored in the eventData
+    final ticketPrice = eventData['ticketPrice'] ?? 0;
+    total = ticketPrice * ticketCount;
     return total.toStringAsFixed(2);
   }
 
@@ -386,7 +386,8 @@ class ProfileDashboard extends StatelessWidget {
               pw.Text(
                   'Booking ID: ${combineTickets ? 'Multiple' : bookings.first.id}'),
               pw.SizedBox(height: 20),
-              pw.Text('Total Price: \$${_calculateTotalPrice(bookings)}'),
+              pw.Text(
+                  'Total Price: \$${_calculateTotalPrice(eventData, bookings.length)}'),
               pw.SizedBox(height: 40),
               pw.BarcodeWidget(
                 barcode: pw.Barcode.qrCode(),
