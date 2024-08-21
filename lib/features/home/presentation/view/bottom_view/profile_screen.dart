@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rxdart/rxdart.dart';
+import 'dart:ui';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -177,7 +178,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDarkMode ? Colors.black : Colors.grey[50];
-    final cardColor = isDarkMode ? Colors.grey[900] : Colors.white;
+    final cardColor = isDarkMode ? Colors.grey[0] : Colors.white;
     final textColor = isDarkMode ? Colors.white : Colors.black;
 
     return Scaffold(
@@ -316,34 +317,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
+                          // Glass Morphism Card
                           Card(
                             color: cardColor,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            elevation: 8,
-                            shadowColor: Colors.black26,
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _buildInfoText('Email', userData['email']),
-                                  const SizedBox(height: 20),
-                                  _buildInfoText('Bio', userData['bio']),
-                                  if (!isOrganizer) ...[
-                                    const SizedBox(height: 20),
-                                    _buildInfoText(
-                                        'Total Bookings', '$totalBookings'),
-                                    _buildInfoText(
-                                        'Total Booked Events', '$totalEvents'),
-                                  ] else ...[
-                                    const SizedBox(height: 20),
-                                    _buildInfoText(
-                                        'Created Events', '$createdEvents'),
-                                    _buildInfoText('Phone', userData['phone']),
-                                  ],
-                                ],
+                            elevation:
+                                0, // Remove elevation since we'll use blur
+                            child: ClipRRect(
+                              // Use ClipRRect to clip the gradient
+                              borderRadius: BorderRadius.circular(16),
+                              child: BackdropFilter(
+                                // Apply a blur effect
+                                filter:
+                                    ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  padding: const EdgeInsets.all(20.0),
+                                  decoration: BoxDecoration(
+                                    // Apply gradient
+                                    gradient: isDarkMode
+                                        ? const LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Color(0xFF212121),
+                                              Color(0xFF000000)
+                                            ], // Blue to Black
+                                          )
+                                        : const LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.white,
+                                              Color.fromARGB(
+                                                  255, 115, 180, 255),
+                                            ], // Blue to White
+                                          ),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildInfoText(
+                                          'Email', userData['email']),
+                                      const SizedBox(height: 20),
+                                      _buildInfoText('Bio', userData['bio']),
+                                      if (!isOrganizer) ...[
+                                        const SizedBox(height: 20),
+                                        _buildInfoText(
+                                            'Total Bookings', '$totalBookings'),
+                                        _buildInfoText('Total Booked Events',
+                                            '$totalEvents'),
+                                      ] else ...[
+                                        const SizedBox(height: 20),
+                                        _buildInfoText(
+                                            'Created Events', '$createdEvents'),
+                                        _buildInfoText(
+                                            'Phone', userData['phone']),
+                                      ],
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -411,15 +447,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         String newBio = userData['bio'] ?? '';
         return AlertDialog(
           title: const Text('Update Bio'),
-          content: TextField(
-            onChanged: (value) {
-              newBio = value;
-            },
-            controller: TextEditingController(text: newBio),
-            decoration: const InputDecoration(
-              hintText: 'Enter your new bio',
+          content: SizedBox(
+            // Wrap the TextField in a SizedBox
+            width: MediaQuery.of(context).size.width * 0.90, // 90% width
+            child: TextField(
+              onChanged: (value) {
+                newBio = value;
+              },
+              controller: TextEditingController(text: newBio),
+              decoration: const InputDecoration(
+                hintText: 'Enter your new bio',
+              ),
+              maxLines: 5,
             ),
-            maxLines: 5,
           ),
           actions: <Widget>[
             TextButton(
@@ -448,6 +488,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
           ],
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color.fromRGBO(30, 30, 30, 1.0)
+              : const Color.fromRGBO(240, 240, 240, 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          elevation: 8.0,
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         );
       },
     );

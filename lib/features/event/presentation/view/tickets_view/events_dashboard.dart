@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -130,65 +131,88 @@ class ProfileDashboard extends StatelessWidget {
         return Card(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          child: InkWell(
-            onTap: () => _showTicketQRCodes(context, bookings, eventData),
-            borderRadius:
-                BorderRadius.circular(15), // Rounded corners for ripple effect
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildEventImage(eventData),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          eventData['title'] ?? 'No title',
-                          style: const TextStyle(
-                            fontSize: 20, // Slightly larger title font size
-                            fontWeight: FontWeight.bold,
-                          ),
+          elevation: 0, // Remove elevation since we'll use blur
+          child: ClipRRect(
+            // Use ClipRRect to clip the gradient
+            borderRadius: BorderRadius.circular(15),
+            child: BackdropFilter(
+              // Apply a blur effect
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  // Apply gradient
+                  gradient: isDarkMode
+                      ? const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFF212121),
+                            Color(0xFF000000)
+                          ], // Blue to Black
+                        )
+                      : const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white,
+                            Color(0xFF4A90E2),
+                          ], // Blue to White
                         ),
-                        const SizedBox(
-                            height:
-                                8), // Increased spacing for better separation
-                        Text(
-                          'Date: ${_formatDate(eventData['startDate'])}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors
-                                .grey[700], // Subtle color for less emphasis
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tickets: $ticketCount',
-                          style: const TextStyle(
-                            fontSize: 16, // Slightly larger font size
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 79, 155, 218),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: InkWell(
+                  onTap: () => _showTicketQRCodes(context, bookings, eventData),
+                  borderRadius: BorderRadius.circular(15),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.qr_code,
-                          color: isDarkMode ? Colors.white : Colors.black),
-                      const SizedBox(height: 8), // Spacing between icons
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteBooking(context, bookings),
-                        tooltip:
-                            'Delete Booking', // Tooltip for better accessibility
+                      _buildEventImage(eventData),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              eventData['title'] ?? 'No title',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Date: ${_formatDate(eventData['startDate'])}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tickets: $ticketCount',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          Icon(Icons.qr_code,
+                              color: isDarkMode ? Colors.white : Colors.black),
+                          const SizedBox(height: 8),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteBooking(context, bookings),
+                            tooltip: 'Delete Booking',
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
