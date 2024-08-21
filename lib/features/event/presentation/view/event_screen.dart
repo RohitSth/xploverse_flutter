@@ -13,55 +13,81 @@ class EventsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: isDarkMode
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : const Color(0xFF4A90E2),
         title: const Text('UPCOMING EVENTS'),
         elevation: 0,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('events')
-                  .orderBy('startDate', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return _buildErrorWidget('Error fetching events');
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final events = snapshot.data!.docs;
-                final filteredEvents = _filterEvents(events);
-
-                if (filteredEvents.isEmpty) {
-                  return _buildErrorWidget('No upcoming events found');
-                }
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(8.0),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // Two events per row
-                    crossAxisSpacing: 8.0, // Space between columns
-                    mainAxisSpacing: 8.0, // Space between rows
-                    childAspectRatio: 0.75, // Adjust the height/width ratio
-                  ),
-                  itemCount: filteredEvents.length,
-                  itemBuilder: (context, index) {
-                    final eventData =
-                        filteredEvents[index].data() as Map<String, dynamic>;
-                    final eventId = filteredEvents[index].id;
-
-                    return _buildEventCard(
-                        context, eventData, eventId, isDarkMode);
-                  },
-                );
-              },
+          // Background Gradient
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDarkMode
+                    ? [
+                        const Color.fromARGB(255, 0, 0, 0),
+                        const Color.fromARGB(255, 0, 38, 82),
+                      ]
+                    : [
+                        const Color(0xFF4A90E2),
+                        const Color.fromARGB(255, 0, 38, 82),
+                      ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
           ),
-          SizedBox(height: 100), // Add a 100px gap here
+          Column(
+            children: [
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('events')
+                      .orderBy('startDate', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return _buildErrorWidget('Error fetching events');
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final events = snapshot.data!.docs;
+                    final filteredEvents = _filterEvents(events);
+
+                    if (filteredEvents.isEmpty) {
+                      return _buildErrorWidget('No upcoming events found');
+                    }
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(8.0),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, // Two events per row
+                        crossAxisSpacing: 8.0, // Space between columns
+                        mainAxisSpacing: 8.0, // Space between rows
+                        childAspectRatio: 0.75, // Adjust the height/width ratio
+                      ),
+                      itemCount: filteredEvents.length,
+                      itemBuilder: (context, index) {
+                        final eventData = filteredEvents[index].data()
+                            as Map<String, dynamic>;
+                        final eventId = filteredEvents[index].id;
+
+                        return _buildEventCard(
+                            context, eventData, eventId, isDarkMode);
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 100), // Add a 100px gap here
+            ],
+          ),
         ],
       ),
     );
@@ -95,72 +121,73 @@ class EventsScreen extends ConsumerWidget {
 
   Widget _buildEventCard(BuildContext context, Map<String, dynamic> eventData,
       String eventId, bool isDarkMode) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () =>
-            _showEventDetailsPopup(context, eventData, eventId, isDarkMode),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: () =>
+          _showEventDetailsPopup(context, eventData, eventId, isDarkMode),
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Stack(
           children: [
-            if (eventData['images'] != null && eventData['images'].isNotEmpty)
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  eventData['images'][0],
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
+            // Main content of the card
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (eventData['images'] != null &&
+                    eventData['images'].isNotEmpty)
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: Image.network(
+                      eventData['images'][0],
+                      height: 120,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        eventData['title'] ?? '',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: isDarkMode ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      _buildInfoRow(
+                          Icons.calendar_today,
+                          _formatDateRange(
+                              eventData['startDate'], eventData['endDate']),
+                          isDarkMode),
+                      const SizedBox(height: 4),
+                      _buildInfoRow(Icons.location_on,
+                          eventData['address'] ?? '', isDarkMode),
+                      const SizedBox(height: 4),
+                      _buildInfoRow(Icons.attach_money,
+                          '${eventData['ticketPrice'] ?? 'N/A'}', isDarkMode),
+                    ],
+                  ),
                 ),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    eventData['title'] ?? '',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: isDarkMode ? Colors.white : Colors.black87,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  _buildInfoRow(
-                      Icons.calendar_today,
-                      _formatDateRange(
-                          eventData['startDate'], eventData['endDate']),
-                      isDarkMode),
-                  const SizedBox(height: 4),
-                  _buildInfoRow(Icons.location_on, eventData['address'] ?? '',
-                      isDarkMode),
-                  const SizedBox(height: 4),
-                  _buildInfoRow(Icons.attach_money,
-                      '${eventData['ticketPrice'] ?? 'N/A'}', isDarkMode),
-                ],
-              ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () =>
-                        _showBookingDialog(context, eventId, eventData),
-                    icon: const Icon(Icons.bookmark_add_outlined),
-                    label: const Text('Book'),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                    ),
-                  ),
-                ],
+            // Positioned "Book" button
+            Positioned(
+              top: 0,
+              right: -4,
+              child: IconButton(
+                icon: Icon(
+                  Icons.bookmark_add_outlined,
+                  color: isDarkMode ? Colors.blue : Colors.black,
+                ),
+                onPressed: () =>
+                    _showBookingDialog(context, eventId, eventData),
               ),
             ),
           ],
@@ -218,7 +245,7 @@ class EventsScreen extends ConsumerWidget {
                     _bookEvent(context, eventId, eventData, ticketQuantity);
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Book'),
+                  child: Text('Book $ticketQuantity Ticket(s)'),
                 ),
               ],
             );
@@ -230,8 +257,6 @@ class EventsScreen extends ConsumerWidget {
 
   void _showEventDetailsPopup(BuildContext context,
       Map<String, dynamic> eventData, String eventId, bool isDarkMode) {
-    int ticketQuantity = 1;
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -296,9 +321,6 @@ class EventsScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     _buildInfoRow(Icons.description,
                         eventData['description'] ?? '', isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                        Icons.phone, eventData['contact'] ?? '', isDarkMode),
                     const SizedBox(height: 16),
                     if (eventData['images'] != null &&
                         eventData['images'].isNotEmpty)
@@ -339,20 +361,58 @@ class EventsScreen extends ConsumerWidget {
   }
 
   void _bookEvent(BuildContext context, String eventId,
-      Map<String, dynamic> eventData, int ticketQuantity) {
+      Map<String, dynamic> eventData, int ticketQuantity) async {
     // Handle the event booking logic here
     final user = FirebaseAuth.instance.currentUser;
 
-    // Book the event and generate a ticket for the user
-    final bookingData = {
-      'userId': user?.uid,
-      'eventId': eventId,
-      'quantity': ticketQuantity,
-      'bookingDate': DateTime.now().toString(),
-      // Additional booking details...
-    };
+    if (user == null) {
+      _showSnackBar(context, 'Please log in to book an event');
+      return;
+    }
 
-    FirebaseFirestore.instance.collection('bookings').add(bookingData);
+    final maxParticipants = eventData['maxParticipants'] ?? 0;
+    final bookingCount = await _getBookingCount(eventId);
+
+    if (bookingCount + ticketQuantity > maxParticipants) {
+      _showSnackBar(context, 'Not enough tickets available');
+      return;
+    }
+
+    try {
+      for (int i = 0; i < ticketQuantity; i++) {
+        await FirebaseFirestore.instance.collection('bookings').add({
+          'userId': user.uid,
+          'eventId': eventId,
+          'eventTitle': eventData['title'],
+          'eventDate': eventData['startDate'],
+          'bookingDate': FieldValue.serverTimestamp(),
+        });
+      }
+      _showSnackBar(context, '$ticketQuantity ticket(s) booked successfully');
+    } catch (e) {
+      _showSnackBar(context, 'Error booking event: $e');
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<int> _getBookingCount(String eventId) async {
+    final bookingCountSnapshot = await FirebaseFirestore.instance
+        .collection('bookings')
+        .where('eventId', isEqualTo: eventId)
+        .get();
+    return bookingCountSnapshot.docs.length;
+  }
+
+  String _formatDateRange(String? startDateString, String? endDateString) {
+    if (startDateString == null || endDateString == null) return '';
+    final startDate = DateTime.parse(startDateString);
+    final endDate = DateTime.parse(endDateString);
+    final formatter = DateFormat('MMM d, y');
+    return '${formatter.format(startDate)} - ${formatter.format(endDate)}';
   }
 
   Widget _buildInfoRow(IconData icon, String text, bool isDarkMode) {
@@ -373,17 +433,5 @@ class EventsScreen extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  String _formatDateRange(String startDate, String endDate) {
-    final DateFormat formatter = DateFormat('MMM dd, yyyy');
-    final DateTime start = DateTime.parse(startDate);
-    final DateTime end = DateTime.parse(endDate);
-
-    if (start.year == end.year && start.month == end.month) {
-      return '${formatter.format(start)} - ${DateFormat('dd, yyyy').format(end)}';
-    } else {
-      return '${formatter.format(start)} - ${formatter.format(end)}';
-    }
   }
 }

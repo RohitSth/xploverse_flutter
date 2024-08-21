@@ -15,17 +15,43 @@ class ProfileDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: isDarkMode
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : const Color(0xFF4A90E2),
         title: const Text(
           'My Bookings',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      body: user == null
-          ? const Center(child: Text('Please log in to view your bookings'))
-          : _buildBookingsList(user.uid),
+      body: Stack(
+        children: [
+          // Background Gradient
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDarkMode
+                    ? [
+                        const Color.fromARGB(255, 0, 0, 0),
+                        const Color.fromARGB(255, 0, 38, 82),
+                      ]
+                    : [
+                        const Color(0xFF4A90E2),
+                        const Color.fromARGB(255, 0, 38, 82),
+                      ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+          user == null
+              ? const Center(child: Text('Please log in to view your bookings'))
+              : _buildBookingsList(user.uid),
+        ],
+      ),
     );
   }
 
@@ -192,7 +218,7 @@ class ProfileDashboard extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
@@ -223,8 +249,10 @@ class ProfileDashboard extends StatelessWidget {
                     ),
                     Expanded(
                       child: combineTickets
-                          ? _buildCombinedTicketInvoice(bookings, eventData)
-                          : _buildIndividualTicketInvoices(bookings, eventData),
+                          ? _buildCombinedTicketInvoice(
+                              dialogContext, bookings, eventData)
+                          : _buildIndividualTicketInvoices(
+                              dialogContext, bookings, eventData),
                     ),
                     ElevatedButton(
                       onPressed: () => _downloadTicketPDF(
@@ -246,26 +274,32 @@ class ProfileDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildCombinedTicketInvoice(
+  Widget _buildCombinedTicketInvoice(BuildContext context,
       List<DocumentSnapshot> bookings, Map<String, dynamic> eventData) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildTicketInvoice(bookings, eventData, combined: true),
-          const SizedBox(height: 16),
           QrImageView(
             data: bookings.map((b) => b.id).join(','),
             version: QrVersions.auto,
-            size: 150.0,
+            size: 200.0,
             gapless: false,
+            // ignore: deprecated_member_use
+            foregroundColor: isDarkMode ? Colors.white : Colors.black,
           ),
+          _buildTicketInvoice(bookings, eventData, combined: true),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildIndividualTicketInvoices(
+  Widget _buildIndividualTicketInvoices(BuildContext context,
       List<DocumentSnapshot> bookings, Map<String, dynamic> eventData) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return ListView.builder(
       itemCount: bookings.length,
       itemBuilder: (context, index) {
@@ -278,6 +312,7 @@ class ProfileDashboard extends StatelessWidget {
               version: QrVersions.auto,
               size: 150.0,
               gapless: false,
+              foregroundColor: isDarkMode ? Colors.white : Colors.black,
             ),
             const SizedBox(height: 24),
           ],
@@ -304,22 +339,24 @@ class ProfileDashboard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text('Date: ${_formatDate(eventData['startDate'])}'),
-          Text('Venue: ${eventData['venue'] ?? 'N/A'}'),
+          Text('Venue: ${eventData['address'] ?? 'N/A'}'),
           const SizedBox(height: 8),
           Text('Tickets: ${combined ? bookings.length : 1}'),
           Text('Booking ID: ${combined ? 'Multiple' : bookings.first.id}'),
           const SizedBox(height: 8),
-          Text('Total Price: \$${_calculateTotalPrice(bookings)}'),
+          // Assuming you have a 'price' field in your bookings collection
+          Text(
+              'Total Price: \$${_calculateTotalPrice(eventData, bookings.length)}'),
         ],
       ),
     );
   }
 
-  String _calculateTotalPrice(List<DocumentSnapshot> bookings) {
+  String _calculateTotalPrice(Map<String, dynamic> eventData, int ticketCount) {
     double total = 0;
-    for (var booking in bookings) {
-      total += (booking.data() as Map<String, dynamic>)['price'] ?? 0;
-    }
+    // Assuming 'ticketPrice' is stored in the eventData
+    final ticketPrice = eventData['ticketPrice'] ?? 0;
+    total = ticketPrice * ticketCount;
     return total.toStringAsFixed(2);
   }
 
@@ -349,7 +386,8 @@ class ProfileDashboard extends StatelessWidget {
               pw.Text(
                   'Booking ID: ${combineTickets ? 'Multiple' : bookings.first.id}'),
               pw.SizedBox(height: 20),
-              pw.Text('Total Price: \$${_calculateTotalPrice(bookings)}'),
+              pw.Text(
+                  'Total Price: \$${_calculateTotalPrice(eventData, bookings.length)}'),
               pw.SizedBox(height: 40),
               pw.BarcodeWidget(
                 barcode: pw.Barcode.qrCode(),
@@ -467,22 +505,7 @@ class ProfileDashboard extends StatelessWidget {
                   TextButton(
                     child: const Text('Delete'),
                     onPressed: () async {
-                      Navigator.of(context).pop();
-                      try {
-                        for (int i = 0; i < ticketsToDelete; i++) {
-                          await bookings[i].reference.delete();
-                        }
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  '$ticketsToDelete ticket(s) deleted successfully')),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('Error deleting ticket(s): $e')),
-                        );
-                      }
+                      Navigator.of(context).pop(ticketsToDelete);
                     },
                   ),
                 ],
@@ -490,7 +513,25 @@ class ProfileDashboard extends StatelessWidget {
             },
           );
         },
-      );
+      ).then((ticketsToDelete) async {
+        if (ticketsToDelete != null && ticketsToDelete > 0) {
+          try {
+            // Delete the specified number of bookings
+            for (int i = 0; i < ticketsToDelete; i++) {
+              await bookings[i].reference.delete();
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content:
+                      Text('$ticketsToDelete ticket(s) deleted successfully')),
+            );
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error deleting ticket(s): $e')),
+            );
+          }
+        }
+      });
     }
   }
 
