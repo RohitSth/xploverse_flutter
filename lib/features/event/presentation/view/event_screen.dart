@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -25,23 +26,6 @@ class EventsScreen extends ConsumerWidget {
       body: Stack(
         children: [
           // Background Gradient
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDarkMode
-                    ? [
-                        const Color.fromARGB(255, 0, 0, 0),
-                        const Color.fromARGB(255, 0, 38, 82),
-                      ]
-                    : [
-                        const Color(0xFF4A90E2),
-                        const Color.fromARGB(255, 0, 38, 82),
-                      ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
           Column(
             children: [
               Expanded(
@@ -70,10 +54,10 @@ class EventsScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(8.0),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, // Two events per row
-                        crossAxisSpacing: 8.0, // Space between columns
-                        mainAxisSpacing: 8.0, // Space between rows
-                        childAspectRatio: 0.75, // Adjust the height/width ratio
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 8.0,
+                        mainAxisSpacing: 8.0,
+                        childAspectRatio: 0.75,
                       ),
                       itemCount: filteredEvents.length,
                       itemBuilder: (context, index) {
@@ -88,7 +72,7 @@ class EventsScreen extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 100), // Add a 100px gap here
+              const SizedBox(height: 100),
             ],
           ),
         ],
@@ -267,91 +251,121 @@ class EventsScreen extends ConsumerWidget {
           builder: (context, setState) {
             return Dialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.black : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  color: isDarkMode
+                      ? const Color.fromARGB(255, 24, 24, 24)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         GestureDetector(
                           onTap: () => Navigator.of(context).pop(),
-                          child: const Icon(Icons.close,
-                              color: Colors.red, size: 20),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      eventData['title'] ?? '',
-                      style: TextStyle(
-                          color: isDarkMode ? Colors.white : Colors.black,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      eventData['subtitle'] ?? '',
-                      style: TextStyle(
-                          color: isDarkMode ? Colors.white : Colors.black,
-                          fontSize: 18),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildInfoRow(Icons.location_on, eventData['address'] ?? '',
-                        isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                        Icons.calendar_today,
-                        _formatDateRange(
-                            eventData['startDate'], eventData['endDate']),
-                        isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(Icons.attach_money,
-                        '${eventData['ticketPrice'] ?? ''}', isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                        Icons.people,
-                        '${eventData['maxParticipants'] ?? ''} MAX',
-                        isDarkMode),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(Icons.description,
-                        eventData['description'] ?? '', isDarkMode),
-                    const SizedBox(height: 16),
-                    if (eventData['images'] != null &&
-                        eventData['images'].isNotEmpty)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          eventData['images'][0],
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            _showBookingDialog(context, eventId, eventData);
-                          },
-                          icon: const Icon(Icons.bookmark_add_outlined),
-                          label: const Text('Book Event'),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20)),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.red,
+                            size: 24,
                           ),
                         ),
                       ],
+                    ),
+                    Text(
+                      eventData['title'] ?? '',
+                      style: const TextStyle(
+                        color: Colors.blueAccent,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      eventData['description'] ?? '',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (eventData['images'] != null &&
+                        eventData['images'].isNotEmpty)
+                      SizedBox(
+                        height: 250, // Increased height for bigger center image
+                        child: CarouselSlider(
+                          options: CarouselOptions(
+                            enableInfiniteScroll: false,
+                            autoPlay: false,
+                            enlargeCenterPage: true, // Enlarge the center image
+                            viewportFraction:
+                                0.8, // Show a bit of the other images
+                            aspectRatio: 16 / 9, // Set the aspect ratio
+                            initialPage: 0,
+                            scrollDirection: Axis.horizontal,
+                          ),
+                          items: (eventData['images'] as List<dynamic>)
+                              .map((image) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                image.toString(),
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    if (eventData['images'] != null &&
+                        eventData['images'].isNotEmpty)
+                      const SizedBox(height: 8),
+                    _buildInfoRow(
+                      Icons.location_on,
+                      eventData['address'] ?? '',
+                      isDarkMode,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      Icons.calendar_today,
+                      _formatDateRange(
+                        eventData['startDate'],
+                        eventData['endDate'],
+                      ),
+                      isDarkMode,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      Icons.attach_money,
+                      '${eventData['ticketPrice'] ?? ''}',
+                      isDarkMode,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      Icons.people,
+                      '${eventData['maxParticipants'] ?? ''} MAX',
+                      isDarkMode,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        _showBookingDialog(context, eventId, eventData);
+                      },
+                      icon: const Icon(Icons.bookmark_add_outlined),
+                      label: const Text('Book Event'),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        backgroundColor:
+                            const Color.fromARGB(255, 15, 123, 247),
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                   ],
                 ),

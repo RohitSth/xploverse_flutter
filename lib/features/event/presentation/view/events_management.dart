@@ -346,15 +346,25 @@ class _EventsManagementState extends State<EventsManagement> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 1),
-          child: AlertDialog(
-            title: Text(isUpdate ? "Update Event" : "Create Event"),
-            content: SingleChildScrollView(
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Text(
+                    isUpdate ? "Update Event" : "Create Event",
+                    style: const TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
                   _buildTextField(titleController, "Title"),
                   _buildTextField(descriptionController, "Description",
                       maxLines: 3),
@@ -374,30 +384,35 @@ class _EventsManagementState extends State<EventsManagement> {
                       _startDateController, 'Start Date', _selectStartDate),
                   _buildDateField(
                       _endDateController, 'End Date', _selectEndDate),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text("Cancel"),
+                      ),
+                      const SizedBox(width: 8.0),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (_validateFields()) {
+                            Navigator.of(context).pop();
+                            if (isUpdate) {
+                              await _updateEvent(eventId!);
+                            } else {
+                              await _addEvent();
+                            }
+                          } else {
+                            _showSnackBar('Please fill all fields');
+                          }
+                        },
+                        child: Text(isUpdate ? "Update" : "Create"),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text("Cancel"),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_validateFields()) {
-                    Navigator.of(context).pop();
-                    if (isUpdate) {
-                      await _updateEvent(eventId!);
-                    } else {
-                      await _addEvent();
-                    }
-                  } else {
-                    _showSnackBar('Please fill all fields');
-                  }
-                },
-                child: Text(isUpdate ? "Update" : "Create"),
-              ),
-            ],
           ),
         );
       },
@@ -564,9 +579,11 @@ class _EventsManagementState extends State<EventsManagement> {
               ),
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 96.0),
+        padding: const EdgeInsets.only(bottom: 76.0),
         child: FloatingActionButton(
-          backgroundColor: const Color.fromARGB(100, 10, 123, 158),
+          backgroundColor: isDarkMode
+              ? const Color.fromARGB(100, 10, 123, 158)
+              : const Color(0xFF4A90E2),
           onPressed: () => _showEventDialog(),
           child: const Icon(Icons.add),
         ),
@@ -594,34 +611,52 @@ class _EventsManagementState extends State<EventsManagement> {
         Card(
           elevation: 2,
           margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          child: ListTile(
-            title: Text(
-              documentSnapshot['title'],
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Column(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  DateFormat('yyyy-MM-dd')
-                      .format(DateTime.parse(documentSnapshot['startDate'])),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        documentSnapshot['title'],
+                        style: const TextStyle(
+                          color: Colors.lightBlue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        DateFormat('yyyy-MM-dd').format(
+                            DateTime.parse(documentSnapshot['startDate'])),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Total Bookings: $totalBookings',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text('Total Bookings: $totalBookings'),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  color: Colors.blue,
-                  onPressed: () => _showEventDialog(eventId: eventId),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  color: Colors.red,
-                  onPressed: () => _showDeleteConfirmation(eventId),
+                const SizedBox(width: 16),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      color: Colors.blue,
+                      onPressed: () => _showEventDialog(eventId: eventId),
+                    ),
+                    const SizedBox(height: 8),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      color: Colors.red,
+                      onPressed: () => _showDeleteConfirmation(eventId),
+                    ),
+                  ],
                 ),
               ],
             ),

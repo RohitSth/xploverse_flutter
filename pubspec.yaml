@@ -64,11 +64,11 @@ dependencies:
   qr_flutter: ^4.1.0
   permission_handler: ^11.3.1
   get: ^4.6.6
-  carousel_slider: ^5.0.0
   path_provider: ^2.1.4
   device_info_plus: ^10.1.2
   pdf: ^3.11.1
   rxdart: ^0.28.0
+  carousel_slider: ^5.0.0
 
 dev_dependencies:
   flutter_test:
