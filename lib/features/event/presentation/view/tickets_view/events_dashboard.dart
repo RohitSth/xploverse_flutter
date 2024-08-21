@@ -15,17 +15,43 @@ class ProfileDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: isDarkMode
+            ? const Color.fromARGB(255, 0, 0, 0)
+            : const Color(0xFF4A90E2), // Keep app bar color
         title: const Text(
           'My Bookings',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      body: user == null
-          ? const Center(child: Text('Please log in to view your bookings'))
-          : _buildBookingsList(user.uid),
+      body: Stack(
+        children: [
+          // Background Gradient
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDarkMode
+                    ? [
+                        const Color.fromARGB(255, 0, 0, 0),
+                        const Color.fromARGB(255, 0, 38, 82),
+                      ]
+                    : [
+                        const Color(0xFF4A90E2),
+                        const Color.fromARGB(255, 0, 38, 82),
+                      ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+          user == null
+              ? const Center(child: Text('Please log in to view your bookings'))
+              : _buildBookingsList(user.uid),
+        ],
+      ),
     );
   }
 
