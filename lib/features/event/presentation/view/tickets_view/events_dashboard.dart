@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -520,15 +522,23 @@ class ProfileDashboard extends StatelessWidget {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Delete Ticket'),
+            title: const Center(
+                child: Text(
+              'DELETE TICKET',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            )),
             content: const Text('Are you sure you want to delete this ticket?'),
             actions: [
               TextButton(
-                child: const Text('Cancel'),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.blue),
+                ),
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               TextButton(
-                child: const Text('Delete'),
+                child:
+                    const Text('Delete', style: TextStyle(color: Colors.red)),
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],

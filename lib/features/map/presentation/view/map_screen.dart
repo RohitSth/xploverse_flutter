@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -441,7 +442,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                 decoration: BoxDecoration(
                   color: isDarkMode
                       ? Colors.black
-                      : const Color.fromARGB(104, 74, 145, 226),
+                      : const Color.fromARGB(104, 63, 143, 235),
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
@@ -531,10 +532,9 @@ class _MapPageState extends ConsumerState<MapPage> {
 
           // Cancel Route
           Positioned(
-            bottom: 110.0,
+            bottom: MediaQuery.of(context).size.height * 0.12,
             right: MediaQuery.of(context).size.width * 0.24,
             child: Visibility(
-              // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
               child: Column(
                 children: [
@@ -556,10 +556,9 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
           // Layers
           Positioned(
-            bottom: 110,
+            bottom: MediaQuery.of(context).size.height * 0.12,
             left: 21,
             child: Visibility(
-              // Hide when EventsScreen is visible
               visible: !_showEventsScreen,
               child: FloatingActionButton(
                 backgroundColor: isDarkMode
@@ -569,19 +568,75 @@ class _MapPageState extends ConsumerState<MapPage> {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => SimpleDialog(
-                      title: const Text('Select Layer'),
-                      children: layers.keys.map((String choice) {
-                        return SimpleDialogOption(
-                          onPressed: () {
-                            setState(() {
-                              currentLayer = choice;
-                            });
-                            Navigator.pop(context);
-                          },
-                          child: Text(choice),
-                        );
-                      }).toList(),
+                    builder: (context) => Dialog(
+                      backgroundColor: Colors.transparent,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: isDarkMode
+                                ? [
+                                    Colors.grey[900]!.withOpacity(0.8),
+                                    Colors.black.withOpacity(0.8)
+                                  ]
+                                : [
+                                    Colors.white.withOpacity(0.8),
+                                    Colors.blue[100]!.withOpacity(0.8)
+                                  ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'SELECT LAYER',
+                                  style: TextStyle(
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                ...layers.keys.map((String choice) {
+                                  return ListTile(
+                                    title: Text(
+                                      choice,
+                                      style: TextStyle(
+                                        color: isDarkMode
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        currentLayer = choice;
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                  );
+                                }).toList(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -589,52 +644,9 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
           ),
-          // Compass
-          Positioned(
-            top: 100,
-            right: 21,
-            child: CompassIcon(
-              direction: _direction ?? 0,
-              isDarkMode: isDarkMode,
-            ),
-          ),
-
-          // Live location info
-          Positioned(
-            top: 110,
-            left: 21,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isDarkMode ? Colors.black54 : Colors.white70,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  if (locationMessage.startsWith('Live location active'))
-                    Container(
-                      width: 10,
-                      height: 10,
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.green,
-                      ),
-                    ),
-                  Text(
-                    locationMessage,
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.white : Colors.black,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
           // Current Location
           Positioned(
-            bottom: 110,
+            bottom: MediaQuery.of(context).size.height * 0.12,
             right: 21,
             child: Visibility(
               // Hide when EventsScreen is visible
@@ -651,7 +663,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
           // Add a floating action button to show the EventsScreen
           Positioned(
-            bottom: 110.0,
+            bottom: MediaQuery.of(context).size.height * 0.12,
             left: 0,
             right: 0,
             child: Visibility(
@@ -662,7 +674,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                   FloatingActionButton(
                     backgroundColor: isDarkMode
                         ? const Color.fromARGB(155, 10, 155, 199)
-                        : const Color.fromARGB(98, 105, 219, 253),
+                        : const Color.fromARGB(155, 105, 219, 253),
                     onPressed: _handleEventsPopUp,
                     child: const Icon(Icons.event),
                   ),
@@ -675,10 +687,8 @@ class _MapPageState extends ConsumerState<MapPage> {
           if (_showSearchPopup)
             Positioned(
               top: MediaQuery.of(context).size.height * 0.2, // Middle top
-              left: MediaQuery.of(context).size.width *
-                  0.1, // Center horizontally
-              right: MediaQuery.of(context).size.width *
-                  0.1, // Center horizontally
+              left: 21,
+              right: 21,
               child: AnimatedOpacity(
                 opacity: _showSearchPopup ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 300),
