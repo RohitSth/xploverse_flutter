@@ -402,17 +402,6 @@ class _MapPageState extends ConsumerState<MapPage> {
                                   color: Colors.red,
                                   size: 40,
                                 ),
-                                if (_selectedEventLatLng == eventLatLng)
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      showEventPopup(context, eventLatLng);
-                                    },
-                                    child: const Icon(Icons.add),
-                                    style: ElevatedButton.styleFrom(
-                                      shape:
-                                          const CircleBorder(), // Make the button circular
-                                    ),
-                                  )
                               ],
                             ),
                           ),
@@ -784,6 +773,23 @@ class _MapPageState extends ConsumerState<MapPage> {
                     ),
                   ),
                 ),
+              ),
+            ),
+
+          // Event Details View Button
+          if (_selectedEventLatLng != null)
+            Positioned(
+              bottom: MediaQuery.of(context).size.height * 0.12,
+              left: MediaQuery.of(context).size.width * 0.24,
+              child: FloatingActionButton(
+                onPressed: () {
+                  showEventPopup(context, _selectedEventLatLng!);
+                },
+                shape: const StadiumBorder(),
+                backgroundColor: isDarkMode
+                    ? const Color.fromARGB(100, 10, 123, 158)
+                    : const Color.fromARGB(98, 105, 219, 253),
+                child: const Icon(Icons.add),
               ),
             ),
         ],

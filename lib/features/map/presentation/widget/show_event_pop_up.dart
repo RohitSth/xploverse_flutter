@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:ui';
@@ -19,15 +20,6 @@ Future<void> showEventPopup(BuildContext context, LatLng eventLatLng) async {
     final eventData = eventDoc.data() as Map<String, dynamic>;
     final eventId = eventDoc.id;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    // Fetch organizer information
-    final DocumentSnapshot organizerSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(eventData['organizerId'])
-        .get();
-
-    final organizerData =
-        organizerSnapshot.data() as Map<String, dynamic>? ?? {};
 
     showDialog(
       context: context,
@@ -173,34 +165,6 @@ Future<void> showEventPopup(BuildContext context, LatLng eventLatLng) async {
                                   '${eventData['maxParticipants'] ?? ''} MAX',
                                   isDarkMode,
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Organizer:',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: isDarkMode
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                _buildInfoRow(
-                                  Icons.person,
-                                  organizerData['username'] ?? 'N/A',
-                                  isDarkMode,
-                                ),
-                                const SizedBox(height: 8),
-                                _buildInfoRow(
-                                  Icons.email,
-                                  organizerData['email'] ?? 'N/A',
-                                  isDarkMode,
-                                ),
-                                const SizedBox(height: 8),
-                                _buildInfoRow(
-                                  Icons.phone,
-                                  organizerData['phone'] ?? 'N/A',
-                                  isDarkMode,
-                                ),
                               ],
                             ),
                           ),
@@ -278,7 +242,7 @@ void _showBookingDialog(
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Center(child: Text('BOOK EVENT: ${eventData['title']}')),
+            title: Center(child: Text('${eventData['title']}')),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -318,7 +282,8 @@ void _showBookingDialog(
                   _bookEvent(context, eventId, eventData, ticketQuantity);
                   Navigator.of(context).pop();
                 },
-                child: const Text('Book'),
+                child: Text('Book $ticketQuantity Ticket(s)',
+                    style: const TextStyle(color: Colors.blue)),
               ),
             ],
           );
@@ -330,19 +295,46 @@ void _showBookingDialog(
 
 void _bookEvent(BuildContext context, String eventId,
     Map<String, dynamic> eventData, int ticketQuantity) async {
-  final bookingCollection =
-      FirebaseFirestore.instance.collection('bookings').doc();
-  final bookingId = bookingCollection.id;
+  // Handle the event booking logic here
+  final user = FirebaseAuth.instance.currentUser;
 
-  await bookingCollection.set({
-    'id': bookingId,
-    'eventId': eventId,
-    'userId': 'YOUR_USER_ID', // Replace with the user's ID
-    'quantity': ticketQuantity,
-    'bookedAt': DateTime.now(),
-  });
+  if (user == null) {
+    _showSnackBar(context, 'Please log in to book an event');
+    return;
+  }
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Booking confirmed!')),
-  );
+  final maxParticipants = eventData['maxParticipants'] ?? 0;
+  final bookingCount = await _getBookingCount(eventId);
+
+  if (bookingCount + ticketQuantity > maxParticipants) {
+    _showSnackBar(context, 'Not enough tickets available');
+    return;
+  }
+
+  try {
+    for (int i = 0; i < ticketQuantity; i++) {
+      await FirebaseFirestore.instance.collection('bookings').add({
+        'userId': user.uid,
+        'eventId': eventId,
+        'eventTitle': eventData['title'],
+        'eventDate': eventData['startDate'],
+        'bookingDate': FieldValue.serverTimestamp(),
+      });
+    }
+    _showSnackBar(context, '$ticketQuantity ticket(s) booked successfully');
+  } catch (e) {
+    _showSnackBar(context, 'Error booking event: $e');
+  }
+}
+
+void _showSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+}
+
+Future<int> _getBookingCount(String eventId) async {
+  final bookingCountSnapshot = await FirebaseFirestore.instance
+      .collection('bookings')
+      .where('eventId', isEqualTo: eventId)
+      .get();
+  return bookingCountSnapshot.docs.length;
 }
