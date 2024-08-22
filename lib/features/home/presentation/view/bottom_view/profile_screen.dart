@@ -250,16 +250,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Stack(
                             alignment: Alignment.bottomRight,
                             children: [
-                              CircleAvatar(
-                                radius: 60,
-                                backgroundImage: profilePictureUrl != null
-                                    ? NetworkImage(profilePictureUrl)
-                                    : null,
-                                child: profilePictureUrl == null
-                                    ? Icon(Icons.person,
-                                        size: 100, color: Colors.grey[400])
-                                    : null,
-                              ),
+                              // Handle null profilePictureUrl gracefully
+                              profilePictureUrl != null
+                                  ? CircleAvatar(
+                                      radius: 60,
+                                      backgroundImage:
+                                          NetworkImage(profilePictureUrl),
+                                    )
+                                  : Icon(Icons.person,
+                                      size: 100, color: Colors.grey[400]),
+
                               if (isLoading)
                                 Positioned.fill(
                                   child: Center(
@@ -361,9 +361,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       _buildInfoText(
-                                          'Email', userData['email']),
+                                          'Email', userData['email'] ?? ''),
                                       const SizedBox(height: 20),
-                                      _buildInfoText('Bio', userData['bio']),
+                                      _buildInfoText(
+                                          'Bio', userData['bio'] ?? ''),
                                       if (!isOrganizer) ...[
                                         const SizedBox(height: 20),
                                         _buildInfoText(
@@ -375,7 +376,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         _buildInfoText(
                                             'Created Events', '$createdEvents'),
                                         _buildInfoText(
-                                            'Phone', userData['phone']),
+                                            'Phone', userData['phone'] ?? ''),
                                       ],
                                     ],
                                   ),
