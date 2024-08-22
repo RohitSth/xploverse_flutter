@@ -175,11 +175,14 @@ class EventsScreen extends ConsumerWidget {
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(12)),
-                          child: Image.network(
-                            eventData['images'][0],
-                            height: 150, // Adjust height as needed
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+                          child: AspectRatio(
+                            aspectRatio:
+                                16 / 9, // Adjust aspect ratio as needed
+                            child: Image.network(
+                              eventData['images'][0],
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       Padding(
