@@ -391,13 +391,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isDarkMode
                                   ? const Color.fromARGB(255, 0, 0, 0)
-                                  : const Color.fromARGB(255, 255, 255, 255),
+                                  : Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 50,
-                                vertical: 15,
+                                horizontal: 20,
+                                vertical: 10,
                               ),
                             ),
                             child: const Text(
@@ -441,62 +441,155 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showUpdateProfileDialog(Map<String, dynamic> userData) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         String newBio = userData['bio'] ?? '';
-        return AlertDialog(
-          title: const Text('Update Bio'),
-          content: SizedBox(
-            // Wrap the TextField in a SizedBox
-            width: MediaQuery.of(context).size.width * 0.90, // 90% width
-            child: TextField(
-              onChanged: (value) {
-                newBio = value;
-              },
-              controller: TextEditingController(text: newBio),
-              decoration: const InputDecoration(
-                hintText: 'Enter your new bio',
-              ),
-              maxLines: 5,
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Update'),
-              onPressed: () {
-                allUsers.doc(user?.uid).update({'bio': newBio}).then((_) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Profile updated successfully'),
-                    ),
-                  );
-                }).catchError((error) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to update profile: $error'),
-                    ),
-                  );
-                });
-              },
-            ),
-          ],
-          backgroundColor: Theme.of(context).brightness == Brightness.dark
-              ? const Color.fromRGBO(30, 30, 30, 1.0)
-              : const Color.fromRGBO(240, 240, 240, 1.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          elevation: 8.0,
+        String newPhone = userData['phone'] ?? '';
+        return Dialog(
+          backgroundColor: Colors.transparent,
           insetPadding:
               const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.90,
+            decoration: BoxDecoration(
+              gradient: isDarkMode
+                  ? const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFF212121), Color(0xFF000000)],
+                    )
+                  : const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white,
+                        Color(0xFF4A90E2),
+                      ],
+                    ),
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Update Profile',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    onChanged: (value) {
+                      newBio = value;
+                    },
+                    controller: TextEditingController(text: newBio),
+                    decoration: InputDecoration(
+                      hintText: 'Enter your new bio',
+                      hintStyle: TextStyle(
+                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                    maxLines: 5,
+                  ),
+                  const SizedBox(height: 16),
+                  if (userData['usertype'] == 'Organizer')
+                    TextField(
+                      onChanged: (value) {
+                        newPhone = value;
+                      },
+                      controller: TextEditingController(text: newPhone),
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        hintText: 'Enter your phone number',
+                        hintStyle: TextStyle(
+                          color: isDarkMode ? Colors.white70 : Colors.black54,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Colors.red,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      TextButton(
+                        child: Text(
+                          'Update',
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.blue : Colors.black,
+                          ),
+                        ),
+                        onPressed: () {
+                          // Update the user document with the new values
+                          allUsers.doc(user?.uid).update({
+                            'bio': newBio,
+                            if (userData['usertype'] == 'Organizer')
+                              'phone': newPhone,
+                          }).then((_) {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Profile updated successfully'),
+                              ),
+                            );
+                          }).catchError((error) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content:
+                                    Text('Failed to update profile: $error'),
+                              ),
+                            );
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );

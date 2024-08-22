@@ -175,11 +175,14 @@ class EventsScreen extends ConsumerWidget {
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(12)),
-                          child: Image.network(
-                            eventData['images'][0],
-                            height: 150, // Adjust height as needed
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+                          child: AspectRatio(
+                            aspectRatio:
+                                16 / 9, // Adjust aspect ratio as needed
+                            child: Image.network(
+                              eventData['images'][0],
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       Padding(
@@ -249,7 +252,7 @@ class EventsScreen extends ConsumerWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Book Event: ${eventData['title']}'),
+              title: Center(child: Text('BOOK EVENT: ${eventData['title']}')),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -281,14 +284,16 @@ class EventsScreen extends ConsumerWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child:
+                      const Text('Cancel', style: TextStyle(color: Colors.red)),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     _bookEvent(context, eventId, eventData, ticketQuantity);
                     Navigator.of(context).pop();
                   },
-                  child: Text('Book $ticketQuantity Ticket(s)'),
+                  child: Text('Book $ticketQuantity Ticket(s)',
+                      style: const TextStyle(color: Colors.blue)),
                 ),
               ],
             );

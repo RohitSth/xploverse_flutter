@@ -67,96 +67,113 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: MediaQuery.of(context).size.height / 3.5,
-                child: SvgPicture.asset("images/XploverseLogo.svg"),
-              ),
-              CustomDropdown(
-                initialValue: selectedUserType,
-                items: const [
-                  DropdownMenuItem(value: 'Explorer', child: Text('Explorer')),
-                  DropdownMenuItem(
-                      value: 'Organizer', child: Text('Organizer')),
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color.fromARGB(255, 0, 0, 0),
+                  const Color.fromARGB(255, 0, 38, 82)
                 ],
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedUserType = newValue!;
-                  });
-                },
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-              TextFieldInput(
-                textEditingController: emailController,
-                hintText: "Enter your email",
-                icon: Icons.email,
-              ),
-              TextFieldInput(
-                textEditingController: passwordController,
-                hintText: "Enter your password",
-                isPass: true,
-                icon: Icons.lock,
-              ),
-              TextFieldInput(
-                textEditingController: usernameController,
-                hintText: selectedUserType == 'Organizer'
-                    ? "Enter organizer name"
-                    : "Enter your username",
-                icon: Icons.person,
-              ),
-              if (selectedUserType == 'Organizer') ...[
-                TextFieldInput(
-                  textEditingController: organizationController,
-                  hintText: "Enter organization name",
-                  icon: Icons.business,
-                ),
-                TextFieldInput(
-                  textEditingController: phoneController,
-                  hintText: "Enter phone number",
-                  icon: Icons.phone,
-                ),
-              ],
-              const SizedBox(height: 20),
-              MyButtons(
-                onTap: signUpUser,
-                text: 'Sign Up',
-              ),
-              const SizedBox(height: 10),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Already have an account?",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(width: 5),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        FadePageRoute(page: const LoginScreen()),
-                      );
-                    },
-                    child: const Text(
-                      "Login here",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.blue),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                  height: MediaQuery.of(context)
-                      .viewInsets
-                      .bottom) // Extra padding to ensure the content is visible when the keyboard is shown
-            ],
+            ),
           ),
-        ),
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height / 3.5,
+                    child: SvgPicture.asset("images/XploverseLogo.svg"),
+                  ),
+                  CustomDropdown(
+                    initialValue: selectedUserType,
+                    items: const [
+                      DropdownMenuItem(
+                          value: 'Explorer', child: Text('Explorer')),
+                      DropdownMenuItem(
+                          value: 'Organizer', child: Text('Organizer')),
+                    ],
+                    onChanged: (newValue) {
+                      setState(() {
+                        selectedUserType = newValue!;
+                      });
+                    },
+                  ),
+                  TextFieldInput(
+                    textEditingController: emailController,
+                    hintText: "Enter your email",
+                    icon: Icons.email,
+                  ),
+                  TextFieldInput(
+                    textEditingController: passwordController,
+                    hintText: "Enter your password",
+                    isPass: true,
+                    icon: Icons.lock,
+                  ),
+                  TextFieldInput(
+                    textEditingController: usernameController,
+                    hintText: selectedUserType == 'Organizer'
+                        ? "Enter organizer name"
+                        : "Enter your username",
+                    icon: Icons.person,
+                  ),
+                  if (selectedUserType == 'Organizer') ...[
+                    TextFieldInput(
+                      textEditingController: organizationController,
+                      hintText: "Enter organization name",
+                      icon: Icons.business,
+                    ),
+                    TextFieldInput(
+                      textEditingController: phoneController,
+                      hintText: "Enter phone number",
+                      icon: Icons.phone,
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  MyButtons(
+                    onTap: signUpUser,
+                    text: 'Sign Up',
+                  ),
+                  const SizedBox(height: 10),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Already have an account?",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(width: 5),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            FadePageRoute(page: const LoginScreen()),
+                          );
+                        },
+                        child: const Text(
+                          "Login here",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.blue),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: MediaQuery.of(context)
+                          .viewInsets
+                          .bottom) // Extra padding to ensure the content is visible when the keyboard is shown
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

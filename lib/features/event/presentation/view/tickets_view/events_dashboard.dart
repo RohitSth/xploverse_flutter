@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -243,6 +245,7 @@ class ProfileDashboard extends StatelessWidget {
   void _showTicketQRCodes(BuildContext context, List<DocumentSnapshot> bookings,
       Map<String, dynamic> eventData) {
     bool combineTickets = false;
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
@@ -254,28 +257,53 @@ class ProfileDashboard extends StatelessWidget {
                   const EdgeInsets.only(top: 58, left: 0, right: 0, bottom: 96),
               child: Dialog(
                 insetPadding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width *
-                      0.05, // 5% padding on each side
+                  horizontal: MediaQuery.of(context).size.width * 0.05,
                 ),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.90, // 90% width
-                  child: Container(
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.90,
+                  decoration: BoxDecoration(
+                    gradient: isDarkMode
+                        ? const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFF212121), Color(0xFF000000)],
+                          )
+                        : const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.white,
+                              Color(0xFF4A90E2),
+                            ],
+                          ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           eventData['title'] ?? 'Event Tickets',
-                          style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Combine Tickets'),
+                            Text(
+                              'Combine Tickets',
+                              style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
                             Transform.scale(
-                              scale: 0.8, // Reduce the size of the switch
+                              scale: 0.8,
                               child: Switch(
                                 value: combineTickets,
                                 onChanged: (value) {
@@ -494,15 +522,23 @@ class ProfileDashboard extends StatelessWidget {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Delete Ticket'),
+            title: const Center(
+                child: Text(
+              'DELETE TICKET',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            )),
             content: const Text('Are you sure you want to delete this ticket?'),
             actions: [
               TextButton(
-                child: const Text('Cancel'),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.blue),
+                ),
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               TextButton(
-                child: const Text('Delete'),
+                child:
+                    const Text('Delete', style: TextStyle(color: Colors.red)),
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],

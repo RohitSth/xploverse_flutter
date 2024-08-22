@@ -44,7 +44,6 @@ class _EventsManagementState extends State<EventsManagement> {
       FirebaseFirestore.instance.collection('events');
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String? _organizerUid;
-  String? _currentEventId;
 
   @override
   void initState() {
@@ -270,7 +269,6 @@ class _EventsManagementState extends State<EventsManagement> {
     setState(() {
       _startDate = null;
       _endDate = null;
-      _currentEventId = null;
     });
   }
 
@@ -308,7 +306,6 @@ class _EventsManagementState extends State<EventsManagement> {
   void _showMoreInfo({String? eventId}) async {}
 
   void _showEventDialog({String? eventId}) async {
-    _currentEventId = eventId;
     bool isUpdate = eventId != null;
 
     // Get current theme data for dark mode check

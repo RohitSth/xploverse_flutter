@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'dart:ui';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:intl/intl.dart';
 
 Future<void> showEventPopup(BuildContext context, LatLng eventLatLng) async {
   // Fetch event details from Firestore
@@ -14,86 +17,220 @@ Future<void> showEventPopup(BuildContext context, LatLng eventLatLng) async {
   if (eventSnapshot.docs.isNotEmpty) {
     final eventDoc = eventSnapshot.docs.first;
     final eventData = eventDoc.data() as Map<String, dynamic>;
+    final eventId = eventDoc.id;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    // Fetch organizer information
+    final DocumentSnapshot organizerSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(eventData['organizerId'])
+        .get();
+
+    final organizerData =
+        organizerSnapshot.data() as Map<String, dynamic>? ?? {};
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(eventData['title'] ?? 'Event Details'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Description: ${eventData['description'] ?? 'N/A'}'),
-                Text(
-                  'Date: ${_formatDate(eventData['startDate'])} - ${_formatDate(eventData['endDate'])}',
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Price: \$${eventData['ticketPrice'] ?? 'N/A'}',
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Description:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  eventData['description'] ?? '',
-                ),
-                const SizedBox(height: 16),
-                FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(eventData['organizerId'])
-                      .get(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<DocumentSnapshot> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    }
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
-                    if (!snapshot.hasData || !snapshot.data!.exists) {
-                      return const Text('Organizer information not available');
-                    }
-
-                    Map<String, dynamic> organizerData =
-                        snapshot.data!.data() as Map<String, dynamic>;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+            ),
+            child: Dialog(
+              insetPadding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: isDarkMode
+                          ? const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0xFF212121), Color(0xFF000000)],
+                            )
+                          : const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.white, Color(0xFF4A90E2)],
+                            ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text(
-                          'Organizer:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  eventData['title'] ?? 'Event Details',
+                                  style: const TextStyle(
+                                    color: Colors.blueAccent,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => Navigator.of(context).pop(),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                  size: 24,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Organization: ${organizerData['organization'] ?? 'N/A'}',
+                        if (eventData['images'] != null &&
+                            eventData['images'].isNotEmpty)
+                          SizedBox(
+                            height: 200,
+                            child: CarouselSlider(
+                              options: CarouselOptions(
+                                enableInfiniteScroll: false,
+                                autoPlay: false,
+                                enlargeCenterPage: true,
+                                viewportFraction: 0.8,
+                                aspectRatio: 16 / 9,
+                                initialPage: 0,
+                              ),
+                              items: (eventData['images'] as List<dynamic>)
+                                  .map((image) {
+                                return Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.7,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    image: DecorationImage(
+                                      image: NetworkImage(image.toString()),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Description:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  eventData['description'] ?? '',
+                                  style: TextStyle(
+                                    color: isDarkMode
+                                        ? Colors.white70
+                                        : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInfoRow(
+                                  Icons.calendar_today,
+                                  _formatDateRange(
+                                    eventData['startDate'],
+                                    eventData['endDate'],
+                                  ),
+                                  isDarkMode,
+                                ),
+                                const SizedBox(height: 8),
+                                _buildInfoRow(
+                                  Icons.location_on,
+                                  eventData['address'] ?? '',
+                                  isDarkMode,
+                                ),
+                                const SizedBox(height: 8),
+                                _buildInfoRow(
+                                  Icons.attach_money,
+                                  '${eventData['ticketPrice'] ?? ''}',
+                                  isDarkMode,
+                                ),
+                                const SizedBox(height: 8),
+                                _buildInfoRow(
+                                  Icons.people,
+                                  '${eventData['maxParticipants'] ?? ''} MAX',
+                                  isDarkMode,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Organizer:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                _buildInfoRow(
+                                  Icons.person,
+                                  organizerData['username'] ?? 'N/A',
+                                  isDarkMode,
+                                ),
+                                const SizedBox(height: 8),
+                                _buildInfoRow(
+                                  Icons.email,
+                                  organizerData['email'] ?? 'N/A',
+                                  isDarkMode,
+                                ),
+                                const SizedBox(height: 8),
+                                _buildInfoRow(
+                                  Icons.phone,
+                                  organizerData['phone'] ?? 'N/A',
+                                  isDarkMode,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        Text(
-                          'Phone: ${organizerData['phone'] ?? 'N/A'}',
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              _showBookingDialog(context, eventId, eventData);
+                            },
+                            icon: const Icon(Icons.bookmark_add_outlined),
+                            label: const Text('Book Event'),
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 15, 123, 247),
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
                         ),
                       ],
-                    );
-                  },
+                    ),
+                  ),
                 ),
-                // Add more event details as needed
-              ],
+              ),
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
         );
       },
     );
@@ -103,8 +240,109 @@ Future<void> showEventPopup(BuildContext context, LatLng eventLatLng) async {
   }
 }
 
-String _formatDate(String? dateString) {
-  if (dateString == null) return '';
-  final date = DateTime.parse(dateString);
-  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+Widget _buildInfoRow(IconData icon, String text, bool isDarkMode) {
+  return Row(
+    children: [
+      Icon(icon, size: 16, color: isDarkMode ? Colors.white : Colors.black),
+      const SizedBox(width: 4),
+      Expanded(
+        child: Text(
+          text,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontSize: 14,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    ],
+  );
+}
+
+String _formatDateRange(String? startDateString, String? endDateString) {
+  if (startDateString == null || endDateString == null) return '';
+  final startDate = DateTime.parse(startDateString);
+  final endDate = DateTime.parse(endDateString);
+  final formatter = DateFormat('MMM d, y');
+  return '${formatter.format(startDate)} - ${formatter.format(endDate)}';
+}
+
+void _showBookingDialog(
+    BuildContext context, String eventId, Map<String, dynamic> eventData) {
+  int ticketQuantity = 1;
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Center(child: Text('BOOK EVENT: ${eventData['title']}')),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Select number of tickets:'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      onPressed: () {
+                        setState(() {
+                          if (ticketQuantity > 1) ticketQuantity--;
+                        });
+                      },
+                    ),
+                    Text('$ticketQuantity'),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        setState(() {
+                          ticketQuantity++;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child:
+                    const Text('Cancel', style: TextStyle(color: Colors.red)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _bookEvent(context, eventId, eventData, ticketQuantity);
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Book'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+void _bookEvent(BuildContext context, String eventId,
+    Map<String, dynamic> eventData, int ticketQuantity) async {
+  final bookingCollection =
+      FirebaseFirestore.instance.collection('bookings').doc();
+  final bookingId = bookingCollection.id;
+
+  await bookingCollection.set({
+    'id': bookingId,
+    'eventId': eventId,
+    'userId': 'YOUR_USER_ID', // Replace with the user's ID
+    'quantity': ticketQuantity,
+    'bookedAt': DateTime.now(),
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Booking confirmed!')),
+  );
 }
