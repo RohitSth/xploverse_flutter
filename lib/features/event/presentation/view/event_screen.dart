@@ -17,12 +17,16 @@ class _EventsScreenState extends State<EventsScreen> {
   final List<String> categories = [
     'All',
     'Music',
-    'Sports',
-    'Art',
+    'Temple',
+    'Nature',
     'Technology',
-    'Festival',
+    'Travelling',
     'Anime',
-    'Business'
+    'Trekking',
+    'Nature',
+    'Adventure',
+    'Business',
+    'Cultural'
   ];
   String selectedCategory = 'All';
 
@@ -172,7 +176,7 @@ class _EventsScreenState extends State<EventsScreen> {
     } else {
       return FirebaseFirestore.instance
           .collection('events')
-          .where('categories', arrayContains: selectedCategory.toLowerCase())
+          .where('categories', arrayContains: selectedCategory)
           .snapshots();
     }
   }
@@ -243,6 +247,7 @@ class _EventsScreenState extends State<EventsScreen> {
                             Center(
                               child: Text(
                                 eventData['title'] ?? '',
+                                maxLines: 1,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 22,
@@ -250,7 +255,6 @@ class _EventsScreenState extends State<EventsScreen> {
                                       ? Colors.white
                                       : Colors.black87,
                                 ),
-                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
