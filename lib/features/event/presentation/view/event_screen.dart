@@ -313,7 +313,7 @@ class _EventsScreenState extends State<EventsScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Center(child: Text('BOOK EVENT: ${eventData['title']}')),
+              title: Center(child: Text('${eventData['title']}')),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
