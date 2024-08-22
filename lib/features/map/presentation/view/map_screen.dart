@@ -407,8 +407,12 @@ class _MapPageState extends ConsumerState<MapPage> {
                                     onPressed: () {
                                       showEventPopup(context, eventLatLng);
                                     },
-                                    child: const Text('View More'),
-                                  ),
+                                    child: const Icon(Icons.add),
+                                    style: ElevatedButton.styleFrom(
+                                      shape:
+                                          const CircleBorder(), // Make the button circular
+                                    ),
+                                  )
                               ],
                             ),
                           ),

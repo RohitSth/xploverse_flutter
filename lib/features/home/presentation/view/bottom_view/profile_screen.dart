@@ -447,6 +447,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (BuildContext context) {
         String newBio = userData['bio'] ?? '';
+        String newPhone = userData['phone'] ?? '';
         return Dialog(
           backgroundColor: Colors.transparent,
           insetPadding:
@@ -476,7 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Update Bio',
+                    'Update Profile',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -511,14 +512,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     maxLines: 5,
                   ),
                   const SizedBox(height: 16),
+                  if (userData['usertype'] == 'Organizer')
+                    TextField(
+                      onChanged: (value) {
+                        newPhone = value;
+                      },
+                      controller: TextEditingController(text: newPhone),
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        hintText: 'Enter your phone number',
+                        hintStyle: TextStyle(
+                          color: isDarkMode ? Colors.white70 : Colors.black54,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
-                        child: Text(
+                        child: const Text(
                           'Cancel',
                           style: TextStyle(
-                            color: isDarkMode ? Colors.white70 : Colors.black54,
+                            color: Colors.red,
                           ),
                         ),
                         onPressed: () {
@@ -529,13 +558,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Text(
                           'Update',
                           style: TextStyle(
-                            color: isDarkMode ? Colors.white : Colors.black,
+                            color: isDarkMode ? Colors.blue : Colors.black,
                           ),
                         ),
                         onPressed: () {
-                          allUsers
-                              .doc(user?.uid)
-                              .update({'bio': newBio}).then((_) {
+                          // Update the user document with the new values
+                          allUsers.doc(user?.uid).update({
+                            'bio': newBio,
+                            if (userData['usertype'] == 'Organizer')
+                              'phone': newPhone,
+                          }).then((_) {
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
