@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/tickets_view/events_dashboard.dart';
-import 'package:flutter_xploverse/features/event/presentation/navigator/booked_provider.dart';
 import 'package:flutter_xploverse/features/auth/presentation/view/login.dart';
 import 'package:flutter_xploverse/features/auth/presentation/viewmodel/authentication.dart';
 import 'package:flutter_xploverse/features/event/presentation/view/events_management.dart';
@@ -96,8 +95,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final Size size = MediaQuery.of(context).size;
             final ThemeData theme =
                 _isDarkMode ? ThemeData.dark() : ThemeData.light();
-            final numberOfEventsInBooked =
-                ref.watch(bookedNotifierProvider).length;
 
             final List<Widget> _children = [
               const MapPage(),
@@ -211,24 +208,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             : const Color.fromARGB(
                                                 255, 10, 123, 158),
                                       ),
-                                      if (index == 2 &&
-                                          numberOfEventsInBooked > 0)
-                                        Positioned(
-                                          top: 3,
-                                          left: 5,
-                                          child: Container(
-                                            height: 19,
-                                            width: 19,
-                                            alignment: Alignment.center,
-                                            child: Text(
-                                              numberOfEventsInBooked.toString(),
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
                                     ],
                                   ),
                                   SizedBox(height: size.width * .03),

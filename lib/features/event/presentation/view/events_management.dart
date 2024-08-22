@@ -192,13 +192,20 @@ class _EventsManagementState extends State<EventsManagement> {
   }
 
   Map<String, dynamic> _getEventData() {
+    // Get the categories as a list from the input
+    List<String> categories = categoriesController.text
+        .trim()
+        .split(',')
+        .map((category) => category.trim())
+        .toList();
+
     return {
       'title': titleController.text,
       'description': descriptionController.text,
       'address': addressController.text,
       'latitude': double.tryParse(latitudeController.text) ?? 0,
       'longitude': double.tryParse(longitudeController.text) ?? 0,
-      'categories': categoriesController.text,
+      'categories': categories, // Store categories as a list
       'images': arrImagesUrl.isNotEmpty ? arrImagesUrl : eventImages,
       'startDate': _startDate?.toIso8601String(),
       'endDate': _endDate?.toIso8601String(),
@@ -219,7 +226,9 @@ class _EventsManagementState extends State<EventsManagement> {
       addressController.text = eventData['address'] ?? '';
       latitudeController.text = eventData['latitude']?.toString() ?? '';
       longitudeController.text = eventData['longitude']?.toString() ?? '';
-      categoriesController.text = eventData['categories'] ?? '';
+      // Join categories from the list with ',' as separator
+      categoriesController.text =
+          (eventData['categories'] as List<dynamic>?)?.join(', ') ?? '';
       eventImages.assignAll(List<String>.from(eventData['images'] ?? []));
       maxParticipantsController.text =
           eventData['maxParticipants']?.toString() ?? '';
@@ -322,7 +331,9 @@ class _EventsManagementState extends State<EventsManagement> {
         addressController.text = eventData['address'] ?? '';
         latitudeController.text = eventData['latitude']?.toString() ?? '';
         longitudeController.text = eventData['longitude']?.toString() ?? '';
-        categoriesController.text = eventData['categories'] ?? '';
+        // Join categories from the list with ',' as separator
+        categoriesController.text =
+            (eventData['categories'] as List<dynamic>?)?.join(', ') ?? '';
         eventImages.assignAll(List<String>.from(eventData['images'] ?? []));
         maxParticipantsController.text =
             eventData['maxParticipants']?.toString() ?? '';
@@ -411,6 +422,15 @@ class _EventsManagementState extends State<EventsManagement> {
                             keyboardType: TextInputType.number,
                           ),
                           _buildTextField(categoriesController, "Categories"),
+                          const SizedBox(height: 8.0),
+                          const Text(
+                            "Enter categories separated by commas (e.g., music, food, nature)",
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(height: 8.0),
                           _buildImageSection(),
                           _buildTextField(
                             maxParticipantsController,
