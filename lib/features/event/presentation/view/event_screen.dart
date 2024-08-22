@@ -50,11 +50,11 @@ class _EventsScreenState extends State<EventsScreen> {
             colors: isDarkMode
                 ? [
                     const Color.fromARGB(255, 0, 0, 0),
-                    const Color.fromARGB(255, 35, 35, 35)
+                    const Color.fromARGB(255, 0, 38, 82),
                   ]
                 : [
                     const Color(0xFF4A90E2),
-                    const Color(0xFF50C9C3),
+                    const Color.fromARGB(255, 0, 38, 82),
                   ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -63,7 +63,8 @@ class _EventsScreenState extends State<EventsScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(
+                  top: 30.0, bottom: 70.0, left: 22, right: 22),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -110,6 +111,7 @@ class _EventsScreenState extends State<EventsScreen> {
               ),
             ),
             Expanded(
+              flex: 0,
               child: StreamBuilder<QuerySnapshot>(
                 stream: _getEventsStream(),
                 builder: (context, snapshot) {
@@ -238,18 +240,21 @@ class _EventsScreenState extends State<EventsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              eventData['title'] ?? '',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color:
-                                    isDarkMode ? Colors.white : Colors.black87,
+                            Center(
+                              child: Text(
+                                eventData['title'] ?? '',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 8),
                             _buildInfoRow(
                                 Icons.calendar_today,
                                 _formatDateRange(eventData['startDate'],
@@ -278,8 +283,8 @@ class _EventsScreenState extends State<EventsScreen> {
                     ],
                   ),
                   Positioned(
-                    top: 0,
-                    right: -4,
+                    bottom: 10,
+                    right: 4,
                     child: IconButton(
                       icon: const Icon(
                         Icons.bookmark_add_outlined,
