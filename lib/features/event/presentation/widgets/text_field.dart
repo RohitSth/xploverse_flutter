@@ -21,8 +21,7 @@ class TextFieldInput extends StatelessWidget {
         style: const TextStyle(fontSize: 20),
         controller: textEditingController,
         decoration: InputDecoration(
-          prefixIcon:
-              Icon(icon, color: const Color.fromARGB(255, 114, 177, 228)),
+          prefixIcon: Icon(icon, color: Colors.black),
           hintText: hintText,
           hintStyle: const TextStyle(
               color: Color.fromARGB(115, 0, 0, 0), fontSize: 18),

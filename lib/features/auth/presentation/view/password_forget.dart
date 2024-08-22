@@ -25,7 +25,7 @@ class _PasswordForgetState extends State<PasswordForget> {
           child: const Text(
             "Forgot Password?",
             style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 14, color: Colors.blue),
+                fontWeight: FontWeight.w400, fontSize: 13, color: Colors.white),
           ),
         ),
       ),
@@ -41,7 +41,7 @@ class _PasswordForgetState extends State<PasswordForget> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Container(
               decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  color: Colors.black, borderRadius: BorderRadius.circular(16)),
               padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -53,7 +53,9 @@ class _PasswordForgetState extends State<PasswordForget> {
                       const Text(
                         "Forgot Password",
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white),
                       ),
                       IconButton(
                         onPressed: () {
@@ -68,6 +70,7 @@ class _PasswordForgetState extends State<PasswordForget> {
                   ),
                   TextField(
                     controller: emailController,
+                    style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         labelText: "Enter your email",
@@ -100,7 +103,7 @@ class _PasswordForgetState extends State<PasswordForget> {
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.white),
+                            color: Colors.black),
                       )),
                 ],
               ),

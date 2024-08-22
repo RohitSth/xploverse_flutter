@@ -82,105 +82,123 @@ class _LoginScreenState extends State<LoginScreen> {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: height / 3.5,
-                child: SvgPicture.asset("images/XploverseLogo.svg"),
+      backgroundColor:
+          Colors.transparent, // Set background color to transparent
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 0, 0, 0),
+                  Color.fromARGB(255, 0, 38, 82)
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-              TextFieldInput(
-                textEditingController: emailController,
-                hintText: "Enter your email",
-                icon: Icons.email,
-              ),
-              TextFieldInput(
-                textEditingController: passwordController,
-                hintText: "Enter your password",
-                isPass: true,
-                icon: Icons.lock,
-              ),
-              const PasswordForget(),
-              MyButtons(
-                onTap: loginUser,
-                text: 'Login',
-              ),
-              const Center(
-                child: Text(
-                  " OR ",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 60, vertical: 10),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 5,
+            ),
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: height / 3.5,
+                    child: SvgPicture.asset("images/XploverseLogo.svg"),
                   ),
-                  onPressed: _signInWithGoogle,
-                  child: Row(
+                  TextFieldInput(
+                    textEditingController: emailController,
+                    hintText: "Enter your email",
+                    icon: Icons.email,
+                  ),
+                  TextFieldInput(
+                    textEditingController: passwordController,
+                    hintText: "Enter your password",
+                    isPass: true,
+                    icon: Icons.lock,
+                  ),
+                  const PasswordForget(),
+                  MyButtons(
+                    onTap: loginUser,
+                    text: 'Login',
+                  ),
+                  const Center(
+                    child: Text(
+                      " OR ",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 60, vertical: 10),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            const Color.fromARGB(255, 255, 255, 255),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 6, horizontal: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: _signInWithGoogle,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Image.network(
+                              "https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png",
+                              height: 30,
+                            ),
+                          ),
+                          const Text(
+                            "Login with Google",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: Color.fromARGB(255, 50, 139, 255),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 90),
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: Image.network(
-                          "https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png",
-                          height: 30,
-                        ),
-                      ),
                       const Text(
-                        "Login with Google",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Color.fromARGB(255, 50, 139, 255),
+                        "Don't have an account?",
+                        style: TextStyle(fontSize: 14, color: Colors.white),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            FadePageRoute(page: const SignUpScreen()),
+                          );
+                        },
+                        child: const Text(
+                          "Sign up here",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.blue,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              SizedBox(height: height / 90),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Don't have an account?",
-                    style: TextStyle(fontSize: 14, color: Colors.white),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        FadePageRoute(page: const SignUpScreen()),
-                      );
-                    },
-                    child: const Text(
-                      "Sign up here",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ),
+                  SizedBox(height: MediaQuery.of(context).viewInsets.bottom)
                 ],
               ),
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom)
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
