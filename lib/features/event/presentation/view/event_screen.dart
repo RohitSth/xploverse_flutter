@@ -4,14 +4,30 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class EventsScreen extends ConsumerWidget {
+class EventsScreen extends StatefulWidget {
   const EventsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _EventsScreenState createState() => _EventsScreenState();
+}
+
+class _EventsScreenState extends State<EventsScreen> {
+  final List<String> categories = [
+    'All',
+    'Music',
+    'Sports',
+    'Art',
+    'Technology',
+    'Festival',
+    'Anime',
+    'Business'
+  ];
+  String selectedCategory = 'All';
+
+  @override
+  Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -20,7 +36,6 @@ class EventsScreen extends ConsumerWidget {
             ? const Color.fromARGB(255, 0, 0, 0)
             : const Color(0xFF4A90E2),
         title: const Padding(
-          // Add padding to the title
           padding: EdgeInsets.only(left: 12.0),
           child: Text(
             'UPCOMING EVENTS',
@@ -35,95 +50,140 @@ class EventsScreen extends ConsumerWidget {
             colors: isDarkMode
                 ? [
                     const Color.fromARGB(255, 0, 0, 0),
-                    const Color.fromARGB(255, 0, 38, 82),
+                    const Color.fromARGB(255, 35, 35, 35)
                   ]
                 : [
                     const Color(0xFF4A90E2),
-                    const Color.fromARGB(255, 0, 38, 82),
+                    const Color(0xFF50C9C3),
                   ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('events')
-                      .orderBy('startDate', descending: true)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return _buildErrorWidget('Error fetching events');
-                    }
-
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    final events = snapshot.data!.docs;
-                    final filteredEvents = _filterEvents(events);
-
-                    if (filteredEvents.isEmpty) {
-                      return _buildErrorWidget('No upcoming events found');
-                    }
-
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(8.0),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 8.0,
-                        mainAxisSpacing: 8.0,
-                        childAspectRatio: 0.75,
-                      ),
-                      itemCount: filteredEvents.length,
-                      itemBuilder: (context, index) {
-                        final eventData = filteredEvents[index].data()
-                            as Map<String, dynamic>;
-                        final eventId = filteredEvents[index].id;
-
-                        return _buildEventCard(
-                            context, eventData, eventId, isDarkMode);
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: categories.map((category) {
+                    final isSelected = category == selectedCategory;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedCategory = category;
+                        });
                       },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15.0, vertical: 10.0),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? (isDarkMode
+                                  ? const Color(0xFF4A90E2)
+                                  : const Color.fromARGB(255, 0, 0, 0))
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20.0),
+                          border: Border.all(
+                            color: isSelected
+                                ? (isDarkMode
+                                    ? const Color(0xFF4A90E2)
+                                    : const Color.fromARGB(255, 0, 0, 0))
+                                : (isDarkMode ? Colors.white : Colors.black),
+                          ),
+                        ),
+                        child: Text(
+                          category,
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : (isDarkMode ? Colors.white : Colors.black),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     );
-                  },
+                  }).toList(),
                 ),
               ),
-              const SizedBox(height: 100),
-            ],
-          ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _getEventsStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Text('No events found'),
+                    );
+                  }
+
+                  final events = _filterEvents(snapshot.data!.docs);
+
+                  if (events.isEmpty) {
+                    return const Center(
+                      child: Text('No upcoming events found for this category'),
+                    );
+                  }
+
+                  return CarouselSlider.builder(
+                    itemCount: events.length,
+                    itemBuilder: (context, index, realIndex) {
+                      final eventData =
+                          events[index].data() as Map<String, dynamic>;
+                      final eventId = events[index].id;
+
+                      return _buildEventCard(
+                          context, eventData, eventId, isDarkMode);
+                    },
+                    options: CarouselOptions(
+                      enlargeCenterPage: true,
+                      height: 400,
+                      autoPlay: true,
+                      aspectRatio: 16 / 9,
+                      autoPlayCurve: Curves.fastOutSlowIn,
+                      enableInfiniteScroll: false,
+                      autoPlayAnimationDuration:
+                          const Duration(milliseconds: 800),
+                      viewportFraction: 0.8,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildErrorWidget(String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 60, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: const TextStyle(fontSize: 18, color: Colors.white),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
+  Stream<QuerySnapshot> _getEventsStream() {
+    if (selectedCategory == 'All') {
+      return FirebaseFirestore.instance
+          .collection('events')
+          .orderBy('startDate', descending: true)
+          .snapshots();
+    } else {
+      return FirebaseFirestore.instance
+          .collection('events')
+          .where('categories', arrayContains: selectedCategory.toLowerCase())
+          .snapshots();
+    }
   }
 
-  List<QueryDocumentSnapshot> _filterEvents(
-      List<QueryDocumentSnapshot> events) {
-    return events.where((event) {
-      final eventData = event.data() as Map<String, dynamic>;
+  List<QueryDocumentSnapshot> _filterEvents(List<QueryDocumentSnapshot> docs) {
+    final now = DateTime.now();
+    return docs.where((doc) {
+      final eventData = doc.data() as Map<String, dynamic>;
+      if (eventData['endDate'] == null) {
+        return false;
+      }
       final endDate = DateTime.parse(eventData['endDate']);
-      return endDate.isAfter(DateTime.now());
+      return endDate.isAfter(now);
     }).toList();
   }
 
@@ -133,40 +193,29 @@ class EventsScreen extends ConsumerWidget {
       onTap: () =>
           _showEventDetailsPopup(context, eventData, eventId, isDarkMode),
       child: Card(
-        elevation: 0, // Remove elevation for blur
+        elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ClipRRect(
-          // Use ClipRRect to clip the gradient
           borderRadius: BorderRadius.circular(12),
           child: BackdropFilter(
-            // Apply a blur effect
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
-              // Wrap content in a Container
               decoration: BoxDecoration(
-                // Apply gradient
                 gradient: isDarkMode
                     ? const LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [
-                          Color(0xFF212121),
-                          Color(0xFF000000)
-                        ], // Blue to Black
+                        colors: [Color(0xFF212121), Color(0xFF000000)],
                       )
                     : const LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [
-                          Color(0xFF4A90E2),
-                          Colors.white
-                        ], // Blue to White
+                        colors: [Color(0xFF4A90E2), Colors.white],
                       ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Stack(
                 children: [
-                  // Main content of the card
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -176,8 +225,7 @@ class EventsScreen extends ConsumerWidget {
                           borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(12)),
                           child: AspectRatio(
-                            aspectRatio:
-                                16 / 9, // Adjust aspect ratio as needed
+                            aspectRatio: 16 / 9,
                             child: Image.network(
                               eventData['images'][0],
                               width: double.infinity,
@@ -215,12 +263,20 @@ class EventsScreen extends ConsumerWidget {
                                 Icons.attach_money,
                                 '${eventData['ticketPrice'] ?? 'N/A'}',
                                 isDarkMode),
+                            const SizedBox(height: 4),
+                            _buildInfoRow(
+                              Icons.category,
+                              eventData['categories'] != null
+                                  ? (eventData['categories'] as List<dynamic>)
+                                      .join(', ')
+                                  : 'N/A',
+                              isDarkMode,
+                            ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  // Positioned "Book" button
                   Positioned(
                     top: 0,
                     right: -4,
@@ -312,41 +368,30 @@ class EventsScreen extends ConsumerWidget {
           builder: (context, setState) {
             return Dialog(
               insetPadding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(context).size.width *
-                    0.05, // 5% padding on each side
+                horizontal: MediaQuery.of(context).size.width * 0.05,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
               child: SizedBox(
-                // Wrap the content in a SizedBox
-                width: MediaQuery.of(context).size.width * 0.90, // 90% width
+                width: MediaQuery.of(context).size.width * 0.90,
                 child: ClipRRect(
-                  // Use ClipRRect to clip the gradient
                   borderRadius: BorderRadius.circular(20),
                   child: BackdropFilter(
-                    // Apply a blur effect
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        // Apply gradient
                         gradient: isDarkMode
                             ? const LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [
-                                  Color(0xFF212121),
-                                  Color(0xFF000000)
-                                ], // Blue to Black
+                                colors: [Color(0xFF212121), Color(0xFF000000)],
                               )
                             : const LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.white,
-                                  Color(0xFF4A90E2),
-                                ], // Blue to White
+                                colors: [Colors.white, Color(0xFF4A90E2)],
                               ),
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -440,6 +485,15 @@ class EventsScreen extends ConsumerWidget {
                             '${eventData['maxParticipants'] ?? ''} MAX',
                             isDarkMode,
                           ),
+                          const SizedBox(height: 8),
+                          _buildInfoRow(
+                            Icons.category,
+                            eventData['categories'] != null
+                                ? (eventData['categories'] as List<dynamic>)
+                                    .join(', ')
+                                : 'N/A',
+                            isDarkMode,
+                          ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
                             onPressed: () {
@@ -471,7 +525,6 @@ class EventsScreen extends ConsumerWidget {
 
   void _bookEvent(BuildContext context, String eventId,
       Map<String, dynamic> eventData, int ticketQuantity) async {
-    // Handle the event booking logic here
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
