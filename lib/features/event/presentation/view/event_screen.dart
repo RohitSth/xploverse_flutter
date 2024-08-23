@@ -443,9 +443,10 @@ class _EventsScreenState extends State<EventsScreen> {
                               GestureDetector(
                                 onTap: () => Navigator.of(context).pop(),
                                 child: const Icon(
-                                  Icons.close,
+                                  Icons.circle,
                                   color: Colors.red,
-                                  size: 24,
+                                  size:
+                                      0, // O because I do not want to show this for now
                                 ),
                               ),
                             ],

@@ -79,9 +79,9 @@ Future<void> showEventPopup(BuildContext context, LatLng eventLatLng) async {
                               GestureDetector(
                                 onTap: () => Navigator.of(context).pop(),
                                 child: const Icon(
-                                  Icons.close,
+                                  Icons.circle,
                                   color: Colors.red,
-                                  size: 24,
+                                  size: 20,
                                 ),
                               ),
                             ],
