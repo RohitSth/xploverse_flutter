@@ -389,7 +389,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 4, horizontal: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.8),
+                                    color: Colors.blue.withOpacity(0.6),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
