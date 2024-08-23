@@ -44,11 +44,11 @@ class _EventsScreenState extends State<EventsScreen> {
         appBar: AppBar(
           backgroundColor: isDarkMode
               ? const Color.fromARGB(255, 0, 0, 0)
-              : const Color(0xFF4A90E2),
+              : const Color(0xFFC9D6FF),
           title: const Padding(
-            padding: EdgeInsets.only(left: 12.0),
+            padding: EdgeInsets.only(left: 14.0, top: 16),
             child: Text(
-              'UPCOMING EVENTS',
+              'XPLOVERSE',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -63,8 +63,8 @@ class _EventsScreenState extends State<EventsScreen> {
                       const Color.fromARGB(255, 0, 38, 82),
                     ]
                   : [
-                      const Color(0xFF4A90E2),
-                      const Color.fromARGB(255, 0, 38, 82),
+                      const Color(0xFFC9D6FF),
+                      const Color(0xFFE2E2E2),
                     ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -234,9 +234,20 @@ class _EventsScreenState extends State<EventsScreen> {
                     : const LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0xFF4A90E2), Colors.white],
+                        colors: [
+                          Color(0xFFE2E2E2),
+                          Colors.white,
+                        ],
                       ),
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.7), // Shadow color
+                    spreadRadius: 5, // Spread radius
+                    blurRadius: 7, // Blur radius
+                    offset: const Offset(0, 3), // Offset in x and y directions
+                  ),
+                ],
               ),
               child: Stack(
                 children: [

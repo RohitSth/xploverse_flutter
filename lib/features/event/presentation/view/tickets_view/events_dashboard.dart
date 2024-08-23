@@ -24,7 +24,7 @@ class ProfileDashboard extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: isDarkMode
             ? const Color.fromARGB(255, 0, 0, 0)
-            : const Color(0xFF4A90E2),
+            : const Color(0xFFC9D6FF),
         title: const Padding(
           padding: EdgeInsets.only(left: 12.0),
           child: Text(
@@ -45,8 +45,8 @@ class ProfileDashboard extends StatelessWidget {
                         const Color.fromARGB(255, 0, 38, 82),
                       ]
                     : [
-                        const Color(0xFF4A90E2),
-                        const Color.fromARGB(255, 0, 38, 82),
+                        const Color(0xFFC9D6FF),
+                        const Color(0xFFE2E2E2),
                       ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -157,8 +157,8 @@ class ProfileDashboard extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
+                            Color(0xFFE2E2E2),
                             Colors.white,
-                            Color(0xFF4A90E2),
                           ], // Blue to White
                         ),
                   borderRadius: BorderRadius.circular(15),
