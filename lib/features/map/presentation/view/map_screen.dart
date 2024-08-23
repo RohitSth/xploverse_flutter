@@ -263,10 +263,14 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 
   Future<void> _search(String query) async {
-    // Simulate search results
-    // Replace this with your actual search implementation
-    _searchResults =
-        eventNames.values.where((name) => name.contains(query)).toList();
+    // Convert the query to lowercase for case-insensitive search
+    final lowercaseQuery = query.toLowerCase();
+
+    // Simulate search results, ignoring case
+    _searchResults = eventNames.values
+        .where((name) => name.toLowerCase().contains(lowercaseQuery))
+        .toList();
+
     // Show the search popup
     setState(() {
       _showSearchPopup = true;

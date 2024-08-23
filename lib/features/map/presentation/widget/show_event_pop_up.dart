@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -300,6 +302,10 @@ void _showBookingDialog(
               ElevatedButton(
                 onPressed: () {
                   _bookEvent(context, eventId, eventData, ticketQuantity);
+                  // Pop after 2 seconds
+                  Timer(const Duration(seconds: 2), () {
+                    Navigator.of(dialogContext).pop();
+                  });
                 },
                 child: Text('Book $ticketQuantity Ticket(s)',
                     style: const TextStyle(color: Colors.blue)),
