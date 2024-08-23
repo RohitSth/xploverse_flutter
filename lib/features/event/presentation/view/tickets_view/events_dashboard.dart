@@ -24,7 +24,7 @@ class ProfileDashboard extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: isDarkMode
             ? const Color.fromARGB(255, 0, 0, 0)
-            : const Color(0xFF4A90E2),
+            : const Color(0xFFC9D6FF),
         title: const Padding(
           padding: EdgeInsets.only(left: 12.0),
           child: Text(
@@ -45,8 +45,8 @@ class ProfileDashboard extends StatelessWidget {
                         const Color.fromARGB(255, 0, 38, 82),
                       ]
                     : [
-                        const Color(0xFF4A90E2),
-                        const Color.fromARGB(255, 0, 38, 82),
+                        const Color(0xFFC9D6FF),
+                        const Color(0xFFE2E2E2),
                       ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -157,8 +157,8 @@ class ProfileDashboard extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
+                            Color(0xFFE2E2E2),
                             Colors.white,
-                            Color(0xFF4A90E2),
                           ], // Blue to White
                         ),
                   borderRadius: BorderRadius.circular(15),
@@ -498,16 +498,25 @@ class ProfileDashboard extends StatelessWidget {
         await file.writeAsBytes(await pdf.save());
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('PDF saved to ${file.path}')),
+          SnackBar(
+            content: Text('PDF saved to ${file.path}'),
+            backgroundColor: Colors.green,
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Storage permission denied')),
+          const SnackBar(
+            content: Text('Storage permission denied'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving PDF: $e')),
+        SnackBar(
+          content: Text('Error saving PDF: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -550,11 +559,17 @@ class ProfileDashboard extends StatelessWidget {
         try {
           await bookings.first.reference.delete();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ticket deleted successfully')),
+            const SnackBar(
+              content: Text('Ticket deleted successfully'),
+              backgroundColor: Colors.green,
+            ),
           );
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error deleting ticket: $e')),
+            SnackBar(
+              content: Text('Error deleting ticket: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -613,12 +628,17 @@ class ProfileDashboard extends StatelessWidget {
             }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                  content:
-                      Text('$ticketsToDelete ticket(s) deleted successfully')),
+                content:
+                    Text('$ticketsToDelete ticket(s) deleted successfully'),
+                backgroundColor: Colors.green,
+              ),
             );
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error deleting ticket(s): $e')),
+              SnackBar(
+                content: Text('Error deleting ticket(s): $e'),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         }

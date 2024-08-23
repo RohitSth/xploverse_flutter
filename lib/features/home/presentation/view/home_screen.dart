@@ -97,16 +97,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 _isDarkMode ? ThemeData.dark() : ThemeData.light();
 
             final List<Widget> _children = [
-              const MapPage(),
               const EventsScreen(),
+              const MapPage(),
               if (userType != 'Organizer') const ProfileDashboard(),
               if (userType == 'Organizer') const EventsManagement(),
               const ProfileScreen(),
             ];
 
             final List<IconData> listOfIcons = [
-              Icons.map,
               Icons.event,
+              Icons.map,
               if (userType != 'Organizer') Icons.bookmark,
               if (userType == 'Organizer') Icons.energy_savings_leaf_outlined,
               Icons.person_rounded,
@@ -149,13 +149,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         border: Border.all(
                           color: const Color.fromARGB(255, 10, 123, 158),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 30,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: ClipRRect(
@@ -204,9 +197,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         listOfIcons[index],
                                         size: iconSize,
                                         color: index == _currentIndex
-                                            ? Colors.white
-                                            : const Color.fromARGB(
-                                                255, 10, 123, 158),
+                                            ? _isDarkMode
+                                                ? Colors.white
+                                                : Colors.black
+                                            : _isDarkMode
+                                                ? const Color.fromARGB(
+                                                    255, 10, 123, 158)
+                                                : const Color.fromARGB(
+                                                    255, 19, 163, 207),
                                       ),
                                     ],
                                   ),

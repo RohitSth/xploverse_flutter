@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 
 class EventsScreen extends StatefulWidget {
@@ -14,6 +15,9 @@ class EventsScreen extends StatefulWidget {
 }
 
 class _EventsScreenState extends State<EventsScreen> {
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
   final List<String> categories = [
     'All',
     'Music',
@@ -34,134 +38,148 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: isDarkMode
-            ? const Color.fromARGB(255, 0, 0, 0)
-            : const Color(0xFF4A90E2),
-        title: const Padding(
-          padding: EdgeInsets.only(left: 12.0),
-          child: Text(
-            'UPCOMING EVENTS',
-            style: TextStyle(fontWeight: FontWeight.bold),
+    return ScaffoldMessenger(
+      key: _scaffoldMessengerKey,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: isDarkMode
+              ? const Color.fromARGB(255, 0, 0, 0)
+              : const Color(0xFFC9D6FF),
+          title: const Padding(
+            padding: EdgeInsets.only(left: 14.0, top: 16),
+            child: Text(
+              'XPLOVERSE',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
+          elevation: 0,
         ),
-        elevation: 0,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isDarkMode
-                ? [
-                    const Color.fromARGB(255, 0, 0, 0),
-                    const Color.fromARGB(255, 0, 38, 82),
-                  ]
-                : [
-                    const Color(0xFF4A90E2),
-                    const Color.fromARGB(255, 0, 38, 82),
-                  ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isDarkMode
+                  ? [
+                      const Color.fromARGB(255, 0, 0, 0),
+                      const Color.fromARGB(255, 0, 38, 82),
+                    ]
+                  : [
+                      const Color(0xFFC9D6FF),
+                      const Color(0xFFE2E2E2),
+                    ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: 30.0, bottom: 70.0, left: 22, right: 22),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: categories.map((category) {
-                    final isSelected = category == selectedCategory;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedCategory = category;
-                        });
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 15.0, vertical: 10.0),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? (isDarkMode
-                                  ? const Color(0xFF4A90E2)
-                                  : const Color.fromARGB(255, 0, 0, 0))
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(20.0),
-                          border: Border.all(
-                            color: isSelected
-                                ? (isDarkMode
-                                    ? const Color(0xFF4A90E2)
-                                    : const Color.fromARGB(255, 0, 0, 0))
-                                : (isDarkMode ? Colors.white : Colors.black),
+          child: Stack(
+            children: [
+              Positioned(
+                top: 30,
+                left: 2,
+                right: 2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 22),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: categories.map((category) {
+                        final isSelected = category == selectedCategory;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedCategory = category;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 15.0, vertical: 10.0),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? (isDarkMode
+                                      ? const Color(0xFF4A90E2)
+                                      : const Color.fromARGB(255, 0, 0, 0))
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(20.0),
+                              border: Border.all(
+                                color: isSelected
+                                    ? (isDarkMode
+                                        ? const Color(0xFF4A90E2)
+                                        : const Color.fromARGB(255, 0, 0, 0))
+                                    : (isDarkMode
+                                        ? Colors.white
+                                        : Colors.black),
+                              ),
+                            ),
+                            child: Text(
+                              category,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : (isDarkMode
+                                        ? Colors.white
+                                        : Colors.black),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          category,
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : (isDarkMode ? Colors.white : Colors.black),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 0,
-              child: StreamBuilder<QuerySnapshot>(
-                stream: _getEventsStream(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                      child: Text('No events found'),
-                    );
-                  }
+              Center(
+                child: SizedBox(
+                  height: 400,
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: _getEventsStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return const Center(
+                          child: Text('No events found'),
+                        );
+                      }
 
-                  final events = _filterEvents(snapshot.data!.docs);
+                      final events = _filterEvents(snapshot.data!.docs);
 
-                  if (events.isEmpty) {
-                    return const Center(
-                      child: Text('No upcoming events found for this category'),
-                    );
-                  }
+                      if (events.isEmpty) {
+                        return const Center(
+                          child: Text(
+                              'No upcoming events found for this category'),
+                        );
+                      }
 
-                  return CarouselSlider.builder(
-                    itemCount: events.length,
-                    itemBuilder: (context, index, realIndex) {
-                      final eventData =
-                          events[index].data() as Map<String, dynamic>;
-                      final eventId = events[index].id;
+                      return CarouselSlider.builder(
+                        itemCount: events.length,
+                        itemBuilder: (context, index, realIndex) {
+                          final eventData =
+                              events[index].data() as Map<String, dynamic>;
+                          final eventId = events[index].id;
 
-                      return _buildEventCard(
-                          context, eventData, eventId, isDarkMode);
+                          return _buildEventCard(
+                              context, eventData, eventId, isDarkMode);
+                        },
+                        options: CarouselOptions(
+                          enlargeCenterPage: true,
+                          height: 400,
+                          autoPlay: true,
+                          aspectRatio: 16 / 9,
+                          autoPlayCurve: Curves.fastOutSlowIn,
+                          enableInfiniteScroll: false,
+                          autoPlayAnimationDuration:
+                              const Duration(milliseconds: 800),
+                          viewportFraction: 0.8,
+                        ),
+                      );
                     },
-                    options: CarouselOptions(
-                      enlargeCenterPage: true,
-                      height: 400,
-                      autoPlay: true,
-                      aspectRatio: 16 / 9,
-                      autoPlayCurve: Curves.fastOutSlowIn,
-                      enableInfiniteScroll: false,
-                      autoPlayAnimationDuration:
-                          const Duration(milliseconds: 800),
-                      viewportFraction: 0.8,
-                    ),
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -216,9 +234,20 @@ class _EventsScreenState extends State<EventsScreen> {
                     : const LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0xFF4A90E2), Colors.white],
+                        colors: [
+                          Color(0xFFE2E2E2),
+                          Colors.white,
+                        ],
                       ),
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.7), // Shadow color
+                    spreadRadius: 5, // Spread radius
+                    blurRadius: 7, // Blur radius
+                    offset: const Offset(0, 3), // Offset in x and y directions
+                  ),
+                ],
               ),
               child: Stack(
                 children: [
@@ -354,8 +383,8 @@ class _EventsScreenState extends State<EventsScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    _bookEvent(context, eventId, eventData, ticketQuantity);
                     Navigator.of(context).pop();
+                    _bookEvent(eventId, eventData, ticketQuantity);
                   },
                   child: Text('Book $ticketQuantity Ticket(s)',
                       style: const TextStyle(color: Colors.blue)),
@@ -489,10 +518,30 @@ class _EventsScreenState extends State<EventsScreen> {
                             isDarkMode,
                           ),
                           const SizedBox(height: 8),
-                          _buildInfoRow(
-                            Icons.people,
-                            '${eventData['maxParticipants'] ?? ''} MAX',
-                            isDarkMode,
+                          // ** Add the line below to display the number of booked tickets.**
+                          FutureBuilder<int>(
+                            future: _getBookingCount(eventId),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Text(
+                                  "Loading...",
+                                  style: TextStyle(color: Colors.blue),
+                                );
+                              } else if (snapshot.hasError) {
+                                return const Text(
+                                  "An error occured",
+                                  style: TextStyle(color: Colors.red),
+                                );
+                              } else {
+                                final bookedCount = snapshot.data ?? 0;
+                                return _buildInfoRow(
+                                  Icons.people,
+                                  '${eventData['maxParticipants'] ?? ''} MAX | $bookedCount Booked',
+                                  isDarkMode,
+                                );
+                              }
+                            },
                           ),
                           const SizedBox(height: 8),
                           _buildInfoRow(
@@ -532,12 +581,12 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 
-  void _bookEvent(BuildContext context, String eventId,
-      Map<String, dynamic> eventData, int ticketQuantity) async {
+  void _bookEvent(String eventId, Map<String, dynamic> eventData,
+      int ticketQuantity) async {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      _showSnackBar(context, 'Please log in to book an event');
+      _showSnackBar('Please log in to book an event');
       return;
     }
 
@@ -545,7 +594,7 @@ class _EventsScreenState extends State<EventsScreen> {
     final bookingCount = await _getBookingCount(eventId);
 
     if (bookingCount + ticketQuantity > maxParticipants) {
-      _showSnackBar(context, 'Not enough tickets available');
+      _showSnackBar('Not enough tickets available');
       return;
     }
 
@@ -559,15 +608,27 @@ class _EventsScreenState extends State<EventsScreen> {
           'bookingDate': FieldValue.serverTimestamp(),
         });
       }
-      _showSnackBar(context, '$ticketQuantity ticket(s) booked successfully');
+      _showSnackBar(
+          '$ticketQuantity ticket(s) booked successfully for ${eventData['title']}');
     } catch (e) {
-      _showSnackBar(context, 'Error booking event: $e');
+      _showSnackBar('Error booking event: ${e.toString()}');
     }
   }
 
-  void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+  void _showSnackBar(String message) {
+    _scaffoldMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.blue,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(
+          bottom: 96,
+          right: 20,
+          left: 20,
+        ),
+      ),
+    );
   }
 
   Future<int> _getBookingCount(String eventId) async {

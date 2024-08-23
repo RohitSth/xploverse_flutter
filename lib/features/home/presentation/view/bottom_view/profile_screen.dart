@@ -192,11 +192,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 colors: isDarkMode
                     ? [
                         const Color.fromARGB(255, 0, 0, 0),
-                        const Color.fromARGB(255, 0, 38, 82)
+                        const Color.fromARGB(255, 0, 38, 82),
                       ]
                     : [
-                        const Color(0xFF4A90E2),
-                        const Color.fromARGB(255, 0, 38, 82)
+                        const Color(0xFFC9D6FF),
+                        const Color(0xFFE2E2E2),
                       ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -311,7 +311,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             (userData['usertype'] ?? 'User Type').toUpperCase(),
                             style: const TextStyle(
                               fontSize: 16,
-                              color: Colors.white,
+                              color: Colors.blue,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 2,
                             ),
@@ -349,9 +349,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             begin: Alignment.topCenter,
                                             end: Alignment.bottomCenter,
                                             colors: [
+                                              Color(0xFFE2E2E2),
                                               Colors.white,
-                                              Color.fromARGB(
-                                                  255, 115, 180, 255),
                                             ], // Blue to White
                                           ),
                                     borderRadius: BorderRadius.circular(16),
@@ -367,16 +366,180 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           'Bio', userData['bio'] ?? ''),
                                       if (!isOrganizer) ...[
                                         const SizedBox(height: 20),
-                                        _buildInfoText(
-                                            'Total Bookings', '$totalBookings'),
-                                        _buildInfoText('Total Booked Events',
-                                            '$totalEvents'),
+                                        // Wrap the info in a Container with a border
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.grey,
+                                                    width: 1,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment
+                                                          .center, // Center align text
+                                                  children: [
+                                                    const Text(
+                                                      "Total Bookings",
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight
+                                                            .bold, // Make title bold
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                        height:
+                                                            4), // Add spacing
+                                                    Text(
+                                                      "$totalBookings",
+                                                      style: const TextStyle(
+                                                        fontSize:
+                                                            18, // Increase font size
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                                width:
+                                                    16), // Add spacing between the containers
+                                            Expanded(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.grey,
+                                                    width: 1,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment
+                                                          .center, // Center align text
+                                                  children: [
+                                                    const Text(
+                                                      "Booked Events",
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight
+                                                            .bold, // Make title bold
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                        height:
+                                                            4), // Add spacing
+                                                    Text(
+                                                      "$totalEvents",
+                                                      style: const TextStyle(
+                                                        fontSize:
+                                                            18, // Increase font size
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ] else ...[
                                         const SizedBox(height: 20),
-                                        _buildInfoText(
-                                            'Created Events', '$createdEvents'),
-                                        _buildInfoText(
-                                            'Phone', userData['phone'] ?? ''),
+                                        // Wrap the info in a Container with a border
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.grey,
+                                                    width: 1,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment
+                                                          .center, // Center align text
+                                                  children: [
+                                                    const Text(
+                                                      "Created Events",
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight
+                                                            .bold, // Make title bold
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                        height:
+                                                            4), // Add spacing
+                                                    Text(
+                                                      "$createdEvents",
+                                                      style: const TextStyle(
+                                                        fontSize:
+                                                            18, // Increase font size
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                                width:
+                                                    16), // Add spacing between the containers
+                                            Expanded(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.grey,
+                                                    width: 1,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment
+                                                          .center, // Center align text
+                                                  children: [
+                                                    const Text(
+                                                      "Phone",
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight
+                                                            .bold, // Make title bold
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                        height:
+                                                            4), // Add spacing
+                                                    Text(
+                                                      userData['phone'] ?? "",
+                                                      style: const TextStyle(
+                                                        fontSize:
+                                                            18, // Increase font size
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     ],
                                   ),
@@ -392,7 +555,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isDarkMode
                                   ? const Color.fromARGB(255, 0, 0, 0)
-                                  : Colors.white,
+                                  : const Color.fromARGB(255, 241, 241, 241),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -403,7 +566,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             child: const Text(
                               'Update Profile',
-                              style: TextStyle(fontSize: 16),
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.blue),
                             ),
                           ),
                           const SizedBox(height: 40),
@@ -466,8 +630,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
+                        Color(0xFFE2E2E2),
                         Colors.white,
-                        Color(0xFF4A90E2),
                       ],
                     ),
               borderRadius: BorderRadius.circular(16.0),
@@ -556,10 +720,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                       TextButton(
-                        child: Text(
+                        child: const Text(
                           'Update',
                           style: TextStyle(
-                            color: isDarkMode ? Colors.blue : Colors.black,
+                            color: Colors.blue,
                           ),
                         ),
                         onPressed: () {

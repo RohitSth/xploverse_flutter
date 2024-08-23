@@ -263,10 +263,14 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 
   Future<void> _search(String query) async {
-    // Simulate search results
-    // Replace this with your actual search implementation
-    _searchResults =
-        eventNames.values.where((name) => name.contains(query)).toList();
+    // Convert the query to lowercase for case-insensitive search
+    final lowercaseQuery = query.toLowerCase();
+
+    // Simulate search results, ignoring case
+    _searchResults = eventNames.values
+        .where((name) => name.toLowerCase().contains(lowercaseQuery))
+        .toList();
+
     // Show the search popup
     setState(() {
       _showSearchPopup = true;
@@ -385,16 +389,21 @@ class _MapPageState extends ConsumerState<MapPage> {
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 4, horizontal: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.8),
+                                    color: Colors.blue.withOpacity(0.6),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
                                     eventNames[eventLatLng] ?? '',
+                                    textAlign:
+                                        TextAlign.center, // Center the text
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow
+                                        .ellipsis, // Add ellipsis for long text
                                   ),
                                 ),
                                 const Icon(
@@ -462,39 +471,51 @@ class _MapPageState extends ConsumerState<MapPage> {
           // EventsScreen Container
           if (_showEventsScreen)
             Positioned(
-              bottom: 0,
+              bottom: MediaQuery.of(context).size.height * 0.12,
               left: 0,
               right: 0,
               child: GestureDetector(
                 child: Container(
                   height: MediaQuery.of(context).size.height * 0.5,
-                  width: MediaQuery.of(context).size.width * 0.5,
+                  width: MediaQuery.of(context).size.width,
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(25)),
+                    borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(25), bottom: Radius.circular(10)),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black45,
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 12.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
                               'Nearby Events (30KM Radius)',
                               style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.close),
                               onPressed: _hideEventsPopUp,
+                              iconSize: 28,
+                              color: Colors.grey[600],
                             ),
                           ],
                         ),
                       ),
                       Expanded(
                         child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           itemCount: nearbyEvents.length,
                           itemBuilder: (context, index) {
                             final event = nearbyEvents[index];
@@ -502,17 +523,39 @@ class _MapPageState extends ConsumerState<MapPage> {
 
                             // Calculate the distance here
                             final distance = _calculateDistance(eventLatLng);
-                            return ListTile(
-                              title: Text(
-                                '${event['name']} (${distance.toStringAsFixed(1)} km)',
-                                style: const TextStyle(color: Colors.blue),
+                            return Card(
+                              margin: const EdgeInsets.symmetric(vertical: 8.0),
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
                               ),
-                              onTap: () {
-                                _getRoute(eventLatLng);
-                                // Move the map and show the event details
-                                mapController.move(eventLatLng, 15.0);
-                                showEventPopup(context, eventLatLng);
-                              },
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(16.0),
+                                title: Text(
+                                  '${event['name']}',
+                                  style: const TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  '${distance.toStringAsFixed(1)} km away',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                trailing: const Icon(
+                                  Icons.directions,
+                                  color: Colors.blue,
+                                ),
+                                onTap: () {
+                                  _getRoute(eventLatLng);
+                                  mapController.move(eventLatLng, 15.0);
+                                  showEventPopup(context, eventLatLng);
+                                },
+                              ),
                             );
                           },
                         ),
