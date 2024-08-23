@@ -394,11 +394,16 @@ class _MapPageState extends ConsumerState<MapPage> {
                                   ),
                                   child: Text(
                                     eventNames[eventLatLng] ?? '',
+                                    textAlign:
+                                        TextAlign.center, // Center the text
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow
+                                        .ellipsis, // Add ellipsis for long text
                                   ),
                                 ),
                                 const Icon(
