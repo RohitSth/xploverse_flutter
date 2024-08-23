@@ -563,7 +563,6 @@ class _MapPageState extends ConsumerState<MapPage> {
                                 ),
                                 trailing: const Icon(
                                   Icons.directions,
-                                  color: Colors.blue,
                                 ),
                                 onTap: () {
                                   _getRoute(eventLatLng);
