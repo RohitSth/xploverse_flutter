@@ -412,14 +412,14 @@ class _MapPageState extends ConsumerState<MapPage> {
                                   children: [
                                     const Icon(
                                       Icons.share_location_rounded,
-                                      color: Color.fromARGB(255, 255, 17, 0),
+                                      color: Colors.amber,
                                       size: 45,
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.only(top: 4),
+                                      padding: const EdgeInsets.only(top: 0),
                                       child: SizedBox(
-                                        width: 40,
-                                        height: 40,
+                                        width: 30,
+                                        height: 30,
                                         child: SvgPicture.asset(
                                             "images/XploverseLogo.svg"),
                                       ),
