@@ -160,10 +160,30 @@ Future<void> showEventPopup(BuildContext context, LatLng eventLatLng) async {
                                   isDarkMode,
                                 ),
                                 const SizedBox(height: 8),
-                                _buildInfoRow(
-                                  Icons.people,
-                                  '${eventData['maxParticipants'] ?? ''} MAX',
-                                  isDarkMode,
+                                // Display the number of tickets booked
+                                FutureBuilder<int>(
+                                  future: _getBookingCount(eventId),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const Text(
+                                        "Loading...",
+                                        style: TextStyle(color: Colors.blue),
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return const Text(
+                                        "An error occured",
+                                        style: TextStyle(color: Colors.red),
+                                      );
+                                    } else {
+                                      final bookedCount = snapshot.data ?? 0;
+                                      return _buildInfoRow(
+                                        Icons.people,
+                                        '${eventData['maxParticipants'] ?? ''} MAX | $bookedCount Booked',
+                                        isDarkMode,
+                                      );
+                                    }
+                                  },
                                 ),
                               ],
                             ),
@@ -238,7 +258,7 @@ void _showBookingDialog(
 
   showDialog(
     context: context,
-    builder: (BuildContext context) {
+    builder: (BuildContext dialogContext) {
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
@@ -273,14 +293,13 @@ void _showBookingDialog(
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(dialogContext).pop(),
                 child:
                     const Text('Cancel', style: TextStyle(color: Colors.red)),
               ),
               ElevatedButton(
                 onPressed: () {
                   _bookEvent(context, eventId, eventData, ticketQuantity);
-                  Navigator.of(context).pop();
                 },
                 child: Text('Book $ticketQuantity Ticket(s)',
                     style: const TextStyle(color: Colors.blue)),
@@ -295,7 +314,6 @@ void _showBookingDialog(
 
 void _bookEvent(BuildContext context, String eventId,
     Map<String, dynamic> eventData, int ticketQuantity) async {
-  // Handle the event booking logic here
   final user = FirebaseAuth.instance.currentUser;
 
   if (user == null) {
@@ -321,14 +339,29 @@ void _bookEvent(BuildContext context, String eventId,
         'bookingDate': FieldValue.serverTimestamp(),
       });
     }
-    _showSnackBar(context, '$ticketQuantity ticket(s) booked successfully');
+    _showSnackBar(context,
+        '$ticketQuantity ticket(s) booked successfully for ${eventData['title']}');
+    Navigator.pop(context);
   } catch (e) {
     _showSnackBar(context, 'Error booking event: $e');
+    Navigator.pop(context);
   }
 }
 
 void _showSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.blue,
+      duration: const Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.only(
+        bottom: 96,
+        right: 20,
+        left: 20,
+      ),
+    ),
+  );
 }
 
 Future<int> _getBookingCount(String eventId) async {
