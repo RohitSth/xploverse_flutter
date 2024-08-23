@@ -498,16 +498,25 @@ class ProfileDashboard extends StatelessWidget {
         await file.writeAsBytes(await pdf.save());
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('PDF saved to ${file.path}')),
+          SnackBar(
+            content: Text('PDF saved to ${file.path}'),
+            backgroundColor: Colors.green,
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Storage permission denied')),
+          const SnackBar(
+            content: Text('Storage permission denied'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving PDF: $e')),
+        SnackBar(
+          content: Text('Error saving PDF: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -550,11 +559,17 @@ class ProfileDashboard extends StatelessWidget {
         try {
           await bookings.first.reference.delete();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ticket deleted successfully')),
+            const SnackBar(
+              content: Text('Ticket deleted successfully'),
+              backgroundColor: Colors.green,
+            ),
           );
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error deleting ticket: $e')),
+            SnackBar(
+              content: Text('Error deleting ticket: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -613,12 +628,17 @@ class ProfileDashboard extends StatelessWidget {
             }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                  content:
-                      Text('$ticketsToDelete ticket(s) deleted successfully')),
+                content:
+                    Text('$ticketsToDelete ticket(s) deleted successfully'),
+                backgroundColor: Colors.green,
+              ),
             );
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error deleting ticket(s): $e')),
+              SnackBar(
+                content: Text('Error deleting ticket(s): $e'),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         }

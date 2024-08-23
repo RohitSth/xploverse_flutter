@@ -37,13 +37,13 @@ Future<void> requestPermissions() async {
     Permission.storage,
   ].request();
 
-  // Check if storage permission is granted
-  if (statuses[Permission.storage] != PermissionStatus.granted) {
-    // Handle the case where permission is not granted (e.g., show a message or disable functionality)
-    print('Storage permission is not granted.');
-  } else {
-    print('Storage permission granted.');
-  }
+  statuses.forEach((permission, status) {
+    if (status != PermissionStatus.granted) {
+      print('$permission is not granted.');
+    } else {
+      print('$permission is granted.');
+    }
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -51,9 +51,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+      title: 'Flutter Xploverse',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      builder: (context, child) {
+        return ScaffoldMessenger(
+          child: child!,
+        );
+      },
+      home: const SplashScreen(),
     );
   }
 }
