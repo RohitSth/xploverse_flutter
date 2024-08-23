@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_xploverse/features/map/domain/use_case/route_api.dart';
 import 'package:flutter_xploverse/features/map/presentation/navigator/event_location_listener.dart';
 import 'package:flutter_xploverse/features/map/presentation/widget/beam_painter.dart';
@@ -406,10 +407,24 @@ class _MapPageState extends ConsumerState<MapPage> {
                                         .ellipsis, // Add ellipsis for long text
                                   ),
                                 ),
-                                const Icon(
-                                  Icons.location_on,
-                                  color: Colors.red,
-                                  size: 40,
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.share_location_rounded,
+                                      color: Colors.amber,
+                                      size: 45,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 0),
+                                      child: SizedBox(
+                                        width: 30,
+                                        height: 30,
+                                        child: SvgPicture.asset(
+                                            "images/XploverseLogo.svg"),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
