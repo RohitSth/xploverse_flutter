@@ -46,7 +46,7 @@ To run the Xploverse app locally:
 
 ## Clone the repository:
 ```bash
-git clone https://github.com/yourusername/xploverse.git
+git clone https://github.com/RohitSth/xploverse_flutter.git
 ```
 
 ## Navigate to the project directory:
