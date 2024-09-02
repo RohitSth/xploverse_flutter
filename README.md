@@ -16,7 +16,7 @@ Xploverse enables users to view events on a map, get detailed information, purch
 ## Features
 - **Event Map View**: Visualize all available events on an interactive map.
 - **Event Creation and Management**: Organizers can easily create, manage, and schedule events.
-- **Ticket Purchase and Verification**: Users can buy tickets within the app, which generates a QR code for event entry.
+- **Ticket Booking**: Users can book tickets within the app, which generates a QR code for event entry.
 - **User Authentication**: Secure login for users, organizers, and admins.
 - **Navigation to Event**: Users can view the route to events directly from the app.
 - **Customizable Markers**: Event locations on the map are marked with the Xploverse logo.
@@ -24,13 +24,22 @@ Xploverse enables users to view events on a map, get detailed information, purch
 ## Screenshots
 Here are some screenshots of the Xploverse app:
 
-- **Home Screen**: Overview of all events with map integration.
-- **Event Details**: Detailed information about a selected event, including location, date, and time.
-- **Event Creation**: Easy-to-use interface for organizers to add new events.
-- **Ticket Purchase**: Secure payment and ticket generation process.
-- **QR Code for Entry**: Each purchased ticket generates a unique QR code for verification at the event.
-- **User Profile**: Manage your account and view your event history.
-- **Settings**: Customize your app experience.
+- **Home Screen**: Overview of all events with map integration.  
+  ![Home Screen](./images/home_screen.png)
+
+- **Event Details**: Detailed information about a selected event, including location, date, and time.  
+  ![Event Details](./images/event_details.jpg)
+
+- **Ticket Booking**: Ticket booking and ticket generation process.  
+  ![Ticket Purchase](./images/book_ticket.jpg)
+
+- **QR Code for Entry**: Each purchased ticket generates a unique QR code for verification at the event.  
+  ![QR Code](./images/QR_Code.jpg)
+  ![QR Code](./images/QR_Combined.jpg)
+
+- **User Profile**: Manage your account and view your event history.  
+  ![User Profile](./images/Profile.jpg)
+
 
 ## Installation
 To run the Xploverse app locally:
@@ -56,7 +65,7 @@ flutter run
 ```
 
 ## Usage
-- **For Users**: Browse events, purchase tickets, and navigate to event locations.
+- **For Users**: Browse events, book tickets, and navigate to event locations.
 - **For Organizers**: Create and manage your events, view analytics, and interact with attendees.
 
 ## Contributing
