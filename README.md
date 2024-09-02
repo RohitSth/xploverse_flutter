@@ -2,16 +2,14 @@
 
 Xploverse is a mobile application designed to help users explore, discover, and participate in events. It offers a seamless experience for both event organizers and attendees, with a focus on intuitive navigation, robust features, and a minimalistic black and blue theme.
 
-<br/>
-
 ## Table of Contents
-Overview
-Features
-Screenshots
-Installation
-Usage
-Contributing
-License
+# Overview
+# Features
+# Screenshots
+# Installation
+# Usage
+# Contributing
+# License
 
 ## Overview
 Xploverse enables users to view events on a map, get detailed information, purchase tickets, and even navigate to event locations. The app leverages Google Maps for geolocation and Firebase for backend data storage. Event organizers can create and manage events directly through the app, and all users benefit from a secure authentication process.
