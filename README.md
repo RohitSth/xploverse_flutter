@@ -11,13 +11,13 @@ Xploverse is a mobile application designed to help users explore, discover, and 
 - [Contributing](#contributing)
 
 ## Overview
-Xploverse enables users to view events on a map, get detailed information, purchase tickets, and even navigate to event locations. The app leverages Google Maps for geolocation and Firebase for backend data storage. Event organizers can create and manage events directly through the app, and all users benefit from a secure authentication process.
+Xploverse enables users to view events on a map, get detailed information, book tickets, and even navigate to event locations. The app leverages Google Maps for geolocation and Firebase for backend data storage. Event organizers can create and manage events directly through the app, and all users benefit from a secure authentication process.
 
 ## Features
 - **Event Map View**: Visualize all available events on an interactive map.
 - **Event Creation and Management**: Organizers can easily create, manage, and schedule events.
 - **Ticket Booking**: Users can book tickets within the app, which generates a QR code for event entry.
-- **User Authentication**: Secure login for users, organizers, and admins.
+- **User Authentication**: Secure login for users, and organizers.
 - **Navigation to Event**: Users can view the route to events directly from the app.
 - **Customizable Markers**: Event locations on the map are marked with the Xploverse logo.
 
@@ -25,20 +25,20 @@ Xploverse enables users to view events on a map, get detailed information, purch
 Here are some screenshots of the Xploverse app:
 
 - **Home Screen**: Overview of all events with map integration.  
-  ![Home Screen](./images/home_screen.png)
+  <img src="./images/home_screen.png" alt="Home Screen" width="300"/>
 
 - **Event Details**: Detailed information about a selected event, including location, date, and time.  
-  ![Event Details](./images/event_details.jpg)
+  <img src="./images/event_details.jpg" alt="Event Details" width="300"/>
 
 - **Ticket Booking**: Ticket booking and ticket generation process.  
-  ![Ticket Purchase](./images/book_ticket.jpg)
+  <img src="./images/book_ticket.jpg" alt="Ticket booking" width="300"/>
 
-- **QR Code for Entry**: Each purchased ticket generates a unique QR code for verification at the event.  
-  ![QR Code](./images/QR_Code.jpg)
-  ![QR Code](./images/QR_Combined.jpg)
+- **QR Code for Entry**: Each booked ticket generates a unique QR code for verification at the event.  
+  <img src="./images/QR_Code.jpg" alt="QR Code" width="300"/>
+  <img src="./images/QR_Combined.jpg" alt="QR Code Combined" width="300"/>
 
 - **User Profile**: Manage your account and view your event history.  
-  ![User Profile](./images/Profile.jpg)
+  <img src="./images/Profile.jpg" alt="User Profile" width="300"/>
 
 
 ## Installation
