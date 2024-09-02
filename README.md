@@ -51,7 +51,7 @@ git clone https://github.com/RohitSth/xploverse_flutter.git
 
 ## Navigate to the project directory:
 ```bash
-cd xploverse
+cd xploverse_flutter
 ```
 
 ## Install dependencies:
